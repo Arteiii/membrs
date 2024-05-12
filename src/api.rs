@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Enum representing available Discord API versions
 ///
 /// [DEVELOPER PORTAL #API Versioning](https://discord.com/developers/docs/reference#api-versioning)
-#[derive(Debug, PartialEq, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Eq, PartialEq)]
 pub enum DiscordApiVersion {
     /// Version 6 - Deprecated (DEFAULT)
     V6 = 6,
@@ -73,7 +73,7 @@ impl DiscordApiVersion {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct DiscordAPi {
     url: String,
     version: DiscordApiVersion,
