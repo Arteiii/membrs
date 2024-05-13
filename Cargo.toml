@@ -2,9 +2,7 @@
 name = "membrs"
 version = "0.1.0"
 edition = "2021"
-
 authors = ["Arteii <ben.arteii@proton.me>"]
-
 license = "AGPL-3"
 
 
@@ -12,11 +10,12 @@ license = "AGPL-3"
 name = "membrs_lib"
 path = "src/lib.rs"
 
-[features]
-default = ["bot", "oauth"]
+[[bin]]
+name = "membrs"
+path = "bin/main.rs"
 
-bot = []
-oauth = []
+[profile.release]
+debug = true
 
 [dependencies]
 reqwest = { version = "0.12.4", features = ["json"] }
@@ -28,3 +27,16 @@ serde = { version = "1.0.201", features = ["derive", ] }
 chrono = { version = "0.4.38", features = ["serde"] }
 serde_json = "1.0.117"
 urlencoding = "2.1.3"
+once_cell = "1.19.0"
+surrealdb = { version = "1.4.2", features = ["native-tls"] }
+
+axum = "0.7.5"
+tower = { version = "0.4.13", features = ["load-shed", "limit"] }
+dotenv = "0.15.0"
+
+
+[features]
+default = ["bot", "oauth"]
+
+bot = []
+oauth = []
