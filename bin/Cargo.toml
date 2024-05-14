@@ -1,0 +1,24 @@
+[package]
+name = "membrs"
+version = "0.1.0"
+publish = false
+edition = "2021"
+authors = ["Arteii <ben.arteii@proton.me>"]
+license = "AGPL-3"
+readme = "README.md"
+
+[dependencies]
+
+# config:
+dotenv = "0.15.0"
+
+# debug tracing
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+
+# runtime:
+tokio = { version = "1.37.0", features = [] }
+
+# yew:
+yew = { git = "https://github.com/yewstack/yew/", features = ["ssr", "csr"] }
+
