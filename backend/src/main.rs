@@ -3,6 +3,8 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+use tower_http::cors::{Any, CorsLayer};
+
 
 mod app_state;
 
@@ -26,7 +28,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
 
     let shared_state = Arc::new(app_state::AppState::default());
-
 
     let listener = tokio::net::TcpListener::bind(shared_state.addr.clone())
         .await
