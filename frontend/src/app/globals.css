@@ -5,37 +5,37 @@
 @tailwind utilities;
 
 @layer components {
-  .font-pt-serif {
-    font-family: 'PT Serif', serif;
-    /* Add any additional font properties here */
-  }
+    .font-pt-serif {
+        font-family: 'PT Serif', serif;
+        /* Add any additional font properties here */
+    }
 
-  .secondaryTitle {
-    @apply font-pt-serif text-3xl bg-left-bottom bg-no-repeat pb-8 px-16 mb-8;
-  }
+    .secondaryTitle {
+        @apply font-pt-serif text-3xl bg-left-bottom bg-no-repeat pb-8 px-16 mb-8;
+    }
 }
 
 .growing-underline {
-  display: block;
-  position: relative;
-  padding: 0.2em 0;
-  overflow: hidden;
+    display: block;
+    position: relative;
+    padding: 0.2em 0;
+    overflow: hidden;
 }
 
 .growing-underline::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0.1em;
-  background-color: black;
-  transition: opacity 300ms, transform 300ms;
-  opacity: 1;
-  transform: translate3d(-100%, 0, 0);
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0.1em;
+    background-color: black;
+    transition: opacity 300ms, transform 300ms;
+    opacity: 1;
+    transform: translate3d(-100%, 0, 0);
 }
 
 .growing-underline:hover::after,
 .growing-underline:focus::after {
-  transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
 }

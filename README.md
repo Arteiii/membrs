@@ -1,9 +1,12 @@
 # membrs
 
 
+selfhosted oauth discord bot for managing discord members
+
+
 you can find the detailed readmes in the project folders
 
-![](./preview/firefox_rq162fkio5.gif)
+![](./preview/msedge_YJFwwVlzxc.gif)
 
 ## License
 

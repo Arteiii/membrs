@@ -3,16 +3,16 @@ import React from 'react';
 // Define an array of steps for the process
 const steps = [
     {
-        title: 'Eat',
-        description: 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.'
+        title: 'Login with Discord',
+        description: 'Use your Discord account to log in.'
     },
     {
-        title: 'Sleep',
-        description: 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.'
+        title: 'Join the Server',
+        description: 'Safely join the Discord server and enjoy.'
     },
     {
-        title: 'Rave',
-        description: 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.'
+        title: 'Rejoin if Needed',
+        description: 'Rejoin a new server if the old one got deleted.'
     }
 ];
 
