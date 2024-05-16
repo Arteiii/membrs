@@ -1,0 +1,15 @@
+[package]
+name = "installer"
+version = "0.1.0"
+publish = false
+edition = "2021"
+authors = ["Arteii <ben.arteii@proton.me>"]
+license = "AGPL-3"
+readme = "README.md"
+build = "build.rs"
+
+
+
+[dependencies]
+zenity = { version = "3.5.0", features = ["menu", "progressbar", "spinner"] }
+lazy_static = "1.4.0"
