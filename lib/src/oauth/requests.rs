@@ -1,5 +1,6 @@
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
+use tracing::debug;
 
 use crate::oauth::{ClientData, OAuthError, OAuthTokenResponse};
 
@@ -24,9 +25,14 @@ pub async fn send_request(url: &str, token: &str) -> Result<Response, OAuthError
 }
 
 pub async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T, OAuthError> {
-    response
-        .json::<T>()
+    let body = response
+        .text()
         .await
+        .map_err(|e| OAuthError::ParseError(format!("Failed to read response body: {}", e)))?;
+
+    debug!("parse_response: {:?}", &body);
+
+    serde_json::from_str::<T>(&body)
         .map_err(|e| OAuthError::ParseError(format!("Failed to parse response: {}", e)))
 }
 

@@ -1,4 +1,5 @@
 use std::fmt;
+
 use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +31,7 @@ impl From<OAuthTokenResponse> for OAuthToken {
     }
 }
 
-#[derive(Debug, Serialize, Clone, Eq, PartialEq, )]
+#[derive(Debug, Serialize, Clone, Eq, PartialEq)]
 pub enum OAuthError {
     RequestError(String),
     ParseError(String),
@@ -43,4 +44,34 @@ impl fmt::Display for OAuthError {
             OAuthError::ParseError(msg) => write!(f, "Parse Error: {}", msg),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AuthorizationInfo {
+    application: ApplicationInfo,
+    scopes: Vec<String>,
+    expires: String,
+    user: UserInfo,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ApplicationInfo {
+    id: String,
+    name: String,
+    icon: Option<String>,
+    description: String,
+    hook: bool,
+    bot_public: bool,
+    bot_require_code_grant: bool,
+    verify_key: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UserInfo {
+    id: String,
+    username: String,
+    avatar: Option<String>,
+    discriminator: String,
+    global_name: Option<String>,
+    public_flags: u64,
 }

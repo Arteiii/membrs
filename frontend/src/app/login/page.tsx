@@ -1,22 +1,13 @@
-"use client";
-
 import RedirectPopup from '@/components/redirect-popup';
-import { useEffect, useState } from 'react';
-
 
 const Page: React.FC = () => {
-    const [showRedirectPopup, setShowRedirectPopup] = useState(false);
-    const redirectUrl = 'http://localhost:3333/oauth/url'; // Example redirect URL
+    const baseUrl  = process.env.BACKEND_URL;
 
-    console.log(redirectUrl);
-
-    const handleRedirect = () => {
-        setShowRedirectPopup(true);
-    };
+    const redirectUrl = `${baseUrl}/oauth/url`;
 
     return (
         <div className="bg-gray-800 p-4">
-            <RedirectPopup redirectUrl={'http://localhost:3333/oauth/url'} />
+            <RedirectPopup redirectUrl={redirectUrl}/>
         </div>
     );
 };

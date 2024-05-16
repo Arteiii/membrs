@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use axum::extract::{Query, State};
-use axum::Json;
 use axum::response::Redirect;
+use axum::Json;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, error};
@@ -25,10 +25,13 @@ pub(crate) async fn oauth_callback(
     State(state): State<Arc<AppState>>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Redirect, Redirect> {
-    let authorization_code = params.get("code").ok_or_else(|| {
-        error!("Authorization code not found in query parameters");
-        json!({"error": "Authorization code not found"})
-    }).unwrap();
+    let authorization_code = params
+        .get("code")
+        .ok_or_else(|| {
+            error!("Authorization code not found in query parameters");
+            json!({"error": "Authorization code not found"})
+        })
+        .unwrap();
 
     let client = oauth::OAuthClient::new(&state.data, authorization_code);
 
@@ -40,11 +43,16 @@ pub(crate) async fn oauth_callback(
                 Err(err) => {
                     // Handle authentication error
                     error!("OAuth error: {:?}", err);
-                    return Err(Redirect::temporary(&format!("http://localhost:3000/login/complete?status=failed&error={:?}", err)));
+                    return Err(Redirect::temporary(&format!(
+                        "{}/login/complete?status=failed&error={:?}",
+                        state.frontend_url, err
+                    )));
                 }
             };
+            debug!("user data: {:?}", user_data);
 
-            debug!("{:?}", user_data);
+            let auth_info = client.get_authorization_info().await.unwrap();
+            debug!("auth info: {:?}", auth_info);
 
             match state
                 .bot
@@ -57,27 +65,35 @@ pub(crate) async fn oauth_callback(
             {
                 Ok(res) => {
                     debug!("Add Guild Member Response: {:?}", res);
-                    Ok(Redirect::temporary(&format!("http://localhost:3000/login/complete?status=complete&username={}", user_data.username.unwrap_or_else(|| "Unknown".to_string()))))
+                    Ok(Redirect::temporary(&format!(
+                        "{}/login/complete?status=complete&username={}",
+                        state.frontend_url,
+                        user_data.username.unwrap_or_else(|| "Unknown".to_string())
+                    )))
                 }
                 Err(err) => {
                     // Handle error
                     let msg = format!("Failed to add guild member: {:?}", err);
                     error!(msg);
-                    Err(Redirect::temporary(&format!("http://localhost:3000/login/complete?status=failed&error={}", user_data.username.unwrap_or_else(|| "Unknown".to_string()))))
+                    Err(Redirect::temporary(&format!(
+                        "{}/login/complete?status=failed&error={}",
+                        state.frontend_url,
+                        user_data.username.unwrap_or_else(|| "Unknown".to_string())
+                    )))
                 }
             }
         }
         Err(err) => {
             // Handle OAuthClient::new error
             error!("OAuth error: {:?}", err);
-            Err(Redirect::temporary(&format!("http://localhost:3000/login/complete?status=failed&error={:?}", err)))
+            Err(Redirect::temporary(&format!(
+                "{}/login/complete?status=failed&error={:?}",
+                state.frontend_url, err
+            )))
         }
     }
 }
 
-
-pub(crate) async fn oauth_url(
-    State(state): State<Arc<AppState>>,
-) -> String {
+pub(crate) async fn oauth_url(State(state): State<Arc<AppState>>) -> String {
     state.oauth_url.to_string()
 }

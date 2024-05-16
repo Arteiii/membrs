@@ -41,10 +41,12 @@
 //! ```
 
 use serde::{Deserialize, Serialize};
+use tracing::field::debug;
 use tracing::{debug, info};
 
 use crate::api;
 use crate::model::guild::Guild;
+use crate::model::oauth::AuthorizationInfo;
 pub use crate::model::oauth::{OAuthError, OAuthToken, OAuthTokenResponse};
 use crate::model::user::UserData;
 use crate::oauth::requests::{authenticate, parse_response, send_request};
@@ -109,6 +111,7 @@ impl OAuthClient {
             &self.token.access_token,
         )
         .await?;
+
         parse_response(response).await
     }
 
@@ -133,5 +136,21 @@ impl OAuthClient {
     /// The OAuthToken instance containing the access token
     pub async fn get_token(&self) -> OAuthToken {
         self.token.clone()
+    }
+
+    /// Retrieves the current authorization information including user data.
+    ///
+    /// # Returns
+    ///
+    /// A Result containing the user data if successful, or an OAuthError if the request fails
+    pub async fn get_authorization_info(&self) -> Result<AuthorizationInfo, OAuthError> {
+        debug!("get_authorization_info called");
+        let response = send_request(
+            &self.api.append_path("/oauth2/@me"),
+            &self.token.access_token,
+        )
+        .await?;
+
+        parse_response(response).await
     }
 }
