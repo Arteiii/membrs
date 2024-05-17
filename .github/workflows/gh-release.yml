@@ -1,0 +1,64 @@
+name: Compile Installer
+
+on:
+  push:
+    tags:
+      - "membrs.v*.*.*"
+
+jobs:
+  build_unix:
+    name: Compile for Unix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Rust for Unix
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-unknown-linux-gnu
+
+      - name: Compile for Unix
+        run: cargo build --bin membrs --release
+
+      - name: Upload to Release
+        uses: actions/upload-artifact@v2
+        with:
+          name: unix-artifact
+          path: |
+            target/release/membrs
+
+  release:
+    needs: build_unix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: git fetch --tags
+
+      - name: Display release version
+        run: |
+          echo "Release version: ${{ env.TAG }}"
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: unix-artifact
+          path: release/unix
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.TAG }}
+          name: "Release ${{ env.TAG }}"
+          files: |
+            release/unix/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          append_body: true
