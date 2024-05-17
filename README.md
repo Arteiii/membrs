@@ -6,11 +6,11 @@ you can find the detailed readmes in the project folders
 
 ![](./preview/msedge_YJFwwVlzxc.gif)
 
-to setup the altest release you can use the executable from github Release page
+to set up the latest release, you can use the executable from the GitHub Release page
 
 the installer currently only supports linux
 
-to download and directly run it you can use:
+to download and directly run it, you can use:
 
 ```shell
 curl -O https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
