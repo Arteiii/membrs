@@ -41,7 +41,6 @@
 //! ```
 
 use serde::{Deserialize, Serialize};
-use tracing::field::debug;
 use tracing::{debug, info};
 
 use crate::api;

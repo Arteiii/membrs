@@ -1,9 +1,8 @@
 use std::io::{Error, ErrorKind};
 
 use reqwest::Client;
-use tracing::error;
-
 use serde_json::json;
+use tracing::error;
 
 use crate::api;
 pub use crate::model::guild::{AddGuildMember, AddGuildMemberResponse};

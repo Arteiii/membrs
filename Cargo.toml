@@ -2,7 +2,7 @@
 members = [
     "lib",
     "backend",
-    "installer",
+    "membrs",
 ]
 
 resolver = "2"

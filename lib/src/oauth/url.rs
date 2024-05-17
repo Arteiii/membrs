@@ -1,4 +1,4 @@
-use tracing::{debug, trace};
+use tracing::trace;
 use urlencoding::encode;
 
 /// A builder for constructing Discord OAuth2 authorization URLs.
@@ -250,7 +250,7 @@ impl DiscordOAuthUrlBuilder {
             url.push_str(&scopes_param);
         }
 
-        debug!("Built OAuth URL: {}", url);
+        trace!("Built OAuth URL: {}", url);
 
         url
     }

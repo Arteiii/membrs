@@ -1,7 +1,7 @@
 [package]
-name = "installer"
+name = "membrs"
 version = "0.1.0"
-publish = false
+publish = true
 edition = "2021"
 authors = ["Arteii <ben.arteii@proton.me>"]
 license = "AGPL-3"
@@ -9,7 +9,9 @@ readme = "README.md"
 build = "build.rs"
 
 
-
 [dependencies]
 zenity = { version = "3.5.0", features = ["menu", "progressbar", "spinner"] }
 lazy_static = "1.4.0"
+clap = { version = "4.5.4", features = ["derive"] }
+dialoguer = { version = "0.11.0", features = ["default"] }
+git2 = "0.18.3"
