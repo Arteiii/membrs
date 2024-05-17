@@ -6,29 +6,15 @@ you can find the detailed readmes in the project folders
 
 ![](./preview/msedge_YJFwwVlzxc.gif)
 
-## ENV vars
+to setup the altest release you can use the executable from github Release page
 
-The Client ID from your Discord application.
-You can find it in the Discord Developer Portal: https://discord.com/developers/applications
+the installer currently only supports linux
 
-````shell
-CLIENT_ID=
-````
+to download and directly run it you can use:
 
-The Client Secret from your Discord application.
-You can find it in the Discord Developer Portal: https://discord.com/developers/applications
-
-````shell
-CLIENT_SECRET=
-````
-
-The Bot Token for your Discord bot.
-You can get it by creating a bot user in the Discord Developer Portal and copying the
-token: https://discord.com/developers/applications
-
-````shell
-BOT_TOKEN=
-````
+```shell
+curl -O https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
+```
 
 ## License
 
