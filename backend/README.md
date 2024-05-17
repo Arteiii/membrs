@@ -1,13 +1,32 @@
 # membrs (Backend)
 
-requires surreal db:
-dev setup (windows):
+requires postgresql !!!!
+
+
+## ENV vars
+
+The Client ID from your Discord application.
+You can find it in the Discord Developer Portal: https://discord.com/developers/applications
 
 ````shell
-surreal.exe start memory -A --auth --user root --pass root
+CLIENT_ID=
 ````
 
-in a real environment you probably dont want to use the memory nor the authentication thats used here
+The Client Secret from your Discord application.
+You can find it in the Discord Developer Portal: https://discord.com/developers/applications
+
+````shell
+CLIENT_SECRET=
+````
+
+The Bot Token for your Discord bot.
+You can get it by creating a bot user in the Discord Developer Portal and copying the
+token: https://discord.com/developers/applications
+
+````shell
+BOT_TOKEN=
+````
+
 
 ## License
 
