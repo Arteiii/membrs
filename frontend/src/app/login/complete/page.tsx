@@ -18,6 +18,7 @@ export default function CompletePage() {
         setErrorDetailsVisible(prevState => !prevState);
     };
 
+    // @ts-ignore
     return (
         <div className="min-h-screen flex justify-center items-center bg-gray-100">
             <Head>
