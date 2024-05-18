@@ -8,16 +8,16 @@ use serde_json::json;
 use tracing::{debug, error};
 
 use membrs_lib::bot::AddGuildMember;
-use membrs_lib::model::user::UserData;
+use membrs_lib::model::user;
 use membrs_lib::oauth;
-use membrs_lib::oauth::OAuthToken;
+use membrs_lib::oauth::{ClientData, OAuthToken};
 
 use crate::app_state::AppState;
-use crate::db;
+use crate::db::{application_data::ApplicationData, users::UserData};
 
 #[derive(Deserialize, Serialize)]
 struct User {
-    data: UserData,
+    data: user::UserData,
     token: OAuthToken,
 }
 
@@ -30,8 +30,21 @@ pub(crate) async fn oauth_callback(
     State(state): State<Arc<AppState>>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Redirect, Redirect> {
-    let app_data = db::fetch_application_data(&state.pool).await.unwrap();
-    let cdata = db::fetch_client_data(&state.pool).await.unwrap();
+    let data = match ApplicationData::get_application_data(&state.pool).await {
+        Ok(data) => data,
+        Err(err) => {
+            error!("db error during get first application: {}", err);
+            return Err(Redirect::temporary(
+                "/login/complete?status=failed&error=unknown_error",
+            ));
+        }
+    };
+
+    let cdata = ClientData {
+        client_id: data.client_id.unwrap(),
+        client_secret: data.client_secret.unwrap(),
+        redirect_uri: data.redirect_uri.unwrap(),
+    };
 
     let authorization_code = params
         .get("code")
@@ -53,22 +66,27 @@ pub(crate) async fn oauth_callback(
                     error!("OAuth error: {:?}", err);
                     return Err(Redirect::temporary(&format!(
                         "{}/login/complete?status=failed&error={:?}",
-                        app_data
-                            .frontend_url
-                            .unwrap_or_else(|| "Unknown".to_string()),
+                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         err
                     )));
                 }
             };
             debug!("user data: {:?}", user_data);
-
-            let auth_info = client.get_authorization_info().await.unwrap();
-            debug!("auth info: {:?}", auth_info);
+            
+            let token = client.get_token().await;
+            UserData::insert_user_data(
+                &state.pool,
+                token.access_token,
+                token.token_type,
+                token.expires_at,
+                token.refresh_token.unwrap_or_else(|| "".to_string()),
+            )
+                .await.expect("TODO: panic message");
 
             match state
                 .bot
                 .add_guild_member(AddGuildMember::new(
-                    &app_data.guild_id.unwrap_or_else(|| "Unknown".to_string()),
+                    &data.guild_id.unwrap_or_else(|| "Unknown".to_string()),
                     &user_data.id,
                     &client.get_token().await,
                 ))
@@ -78,9 +96,7 @@ pub(crate) async fn oauth_callback(
                     debug!("Add Guild Member Response: {:?}", res);
                     Ok(Redirect::temporary(&format!(
                         "{}/login/complete?status=complete&username={}",
-                        app_data
-                            .frontend_url
-                            .unwrap_or_else(|| "Unknown".to_string()),
+                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
                 }
@@ -90,9 +106,7 @@ pub(crate) async fn oauth_callback(
                     error!(msg);
                     Err(Redirect::temporary(&format!(
                         "{}/login/complete?status=failed&error={}",
-                        app_data
-                            .frontend_url
-                            .unwrap_or_else(|| "Unknown".to_string()),
+                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
                 }
@@ -103,9 +117,7 @@ pub(crate) async fn oauth_callback(
             error!("OAuth error: {:?}", err);
             Err(Redirect::temporary(&format!(
                 "{}/login/complete?status=failed&error={:?}",
-                app_data
-                    .frontend_url
-                    .unwrap_or_else(|| "Unknown".to_string()),
+                data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                 err
             )))
         }
@@ -113,20 +125,23 @@ pub(crate) async fn oauth_callback(
 }
 
 pub(crate) async fn oauth_url(State(state): State<Arc<AppState>>) -> Result<String, String> {
-    match sqlx::query_as!(OauthUrl, r#"SELECT oauth_url FROM application_data"#)
-        .fetch_one(&state.pool)
-        .await
-    {
-        Ok(cdata) => match cdata.oauth_url {
+    match ApplicationData::get_oauth_url(&state.pool).await {
+        Ok(cdata) => match cdata {
             Some(url) => Ok(url),
             None => {
                 eprintln!("OAuth URL is NULL in the database");
-                Err("OAuth URL is not set in the database".into())
+                Err(
+                    "/login/complete?status=failed&error=OAuth URL is not set in the database"
+                        .into(),
+                )
             }
         },
         Err(err) => {
             eprintln!("Failed to fetch OAuth URL: {:?}", err);
-            Err("Failed to fetch OAuth URL from the database".into())
+            Err(
+                "/login/complete?status=failed&error=Failed to fetch OAuth URL from the database"
+                    .into(),
+            )
         }
     }
 }
