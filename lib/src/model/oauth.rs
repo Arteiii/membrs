@@ -48,10 +48,10 @@ impl fmt::Display for OAuthError {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AuthorizationInfo {
-    application: ApplicationInfo,
-    scopes: Vec<String>,
-    expires: String,
-    user: UserInfo,
+    pub application: ApplicationInfo,
+    pub scopes: Vec<String>,
+    pub expires: String,
+    pub user: UserInfo,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

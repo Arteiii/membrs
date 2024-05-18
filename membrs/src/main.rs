@@ -141,20 +141,19 @@ fn install_dependencies() {
     let git_sp = sp.add(Frames::dot_spinner1());
     sp.set_text(&git_sp, "Checking Git...".to_string());
     thread::sleep(Duration::from_secs(2));
-    
+
     let dependency = Package::Rust.details();
     dependency.check_and_install(&sp, &rust_sp);
     thread::sleep(Duration::from_secs(2));
-    
+
     let dependency = Package::OpenSSL.details();
     dependency.check_and_install(&sp, &openssl_sp);
     thread::sleep(Duration::from_secs(2));
-    
+
     let dependency = Package::Git.details();
     dependency.check_and_install(&sp, &git_sp);
     thread::sleep(Duration::from_secs(2));
 }
-
 
 fn start_all() {
     println!("starting applications...");

@@ -1,4 +1,4 @@
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 
 use lazy_static::lazy_static;
 

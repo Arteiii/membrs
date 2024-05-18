@@ -1,4 +1,4 @@
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 
 use zenity::spinner::MultiSpinner;
 use zenity::style::{Color, StyledString};
