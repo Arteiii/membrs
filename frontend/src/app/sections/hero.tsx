@@ -28,7 +28,7 @@ export default function Hero() {
                     facilitating efficient backup and essential operations.
                 </p>
                 <div className="font-montserrat flex">
-                    <a href="https://github.com/Arteiii/membrs" className="flex items-center">
+                    <a href="https://github.com/Arteiii/membrs" target="_blank" className="flex items-center">
                         <button
                             className="flex bg-black px-6 py-4 rounded-lg border-2 border-black border-solid text-white mr-2 mb-2">
                             <GitHubLogoIcon height={24} width={24} className="mr-3"></GitHubLogoIcon>
