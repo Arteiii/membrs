@@ -13,7 +13,7 @@ the installer currently only supports linux
 to download and directly run it, you can use:
 
 ```shell
-curl -O https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
+curl -O -L https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
 ```
 
 ## License

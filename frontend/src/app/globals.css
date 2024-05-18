@@ -39,3 +39,143 @@
 .growing-underline:focus::after {
     transform: translate3d(0, 0, 0);
 }
+
+
+.sectionSize {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+}
+
+@media (min-width: 768px) {
+    .sectionSize {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .sectionSize {
+        padding-left: 12rem;
+        padding-right: 12rem;
+    }
+}
+
+
+.items-start {
+    align-items: flex-start;
+}
+
+.pt-8 {
+    padding-top: 2rem;
+}
+
+
+.secondaryTitle {
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    font-family: PT Serif, serif;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    margin-bottom: 2rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
+    padding-bottom: 2rem;
+}
+
+.bg-highlight3 {
+    background-image: url('/assets/Highlight3.svg');
+}
+
+.bg-underline3 {
+    background-image: url('/assets/Underline3.svg');
+}
+
+
+.bg-center {
+    background-position: center;
+}
+
+.p-10 {
+    padding: 2.5rem;
+}
+
+.mb-0 {
+    margin-bottom: 0px;
+}
+
+.font-montserrat {
+    font-family: Montserrat, sans-serif;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.bg-100\% {
+    background-size: 100%;
+}
+
+
+.bg-secondary {
+    --tw-bg-opacity: 1;
+    background-color: rgba(244, 242, 237, var(--tw-bg-opacity));
+}
+
+.sm\:font-montserrat {
+    font-family: Montserrat, sans-serif;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.sm\:text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-rows-2 {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.font-pt-serif {
+    font-family: PT Serif, serif;
+}
+
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+

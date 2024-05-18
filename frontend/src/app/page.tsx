@@ -10,14 +10,14 @@ import Hero from "./sections/hero";
 
 export default function Home() {
   return (
-    <main>
-      <Navigation />
-      <Hero />
-      <HowItWorks />
-      <Features />
-      {/*<Pricing />*/}
-      <Faq />
-      <Footer />
-    </main >
+      <main>
+          <Navigation/>
+          <Hero/>
+          <HowItWorks/>
+          <Features/>
+          {/*<Pricing />*/}
+          <Faq/>
+          <Footer/>
+      </main>
   );
 }

@@ -15,9 +15,9 @@ impl Package {
                 check_command: "rustc",
                 check_arg: "--version",
                 install_command:
-                    "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
-                        .parse()
-                        .unwrap(),
+                "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y >/dev/null 2>&1"
+                    .parse()
+                    .unwrap(),
             },
             Package::OpenSSL => Dependency {
                 name: "OpenSSL",

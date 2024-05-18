@@ -1,35 +1,74 @@
+use std::env;
 use std::process::exit;
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
+use dotenv::dotenv;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
 use tracing::{debug, error, Level};
 use tracing_subscriber::FmtSubscriber;
 
+use membrs_lib::bot::Bot;
+
+use crate::app_state::AppState;
+use crate::db::application_data::ApplicationData;
+
 mod app_state;
 
+mod db;
 mod routes;
 
-#[derive(Serialize, Deserialize)]
-struct Settings {
-    active: bool,
-    marketing: bool,
+struct EnvArgs {
+    backend_url: String,
+    frontend_url: String,
+    postgres: String,
+    token: String,
 }
 
-#[derive(Serialize)]
-struct User<'a> {
-    name: &'a str,
-    settings: Settings,
+impl EnvArgs {
+    fn new() -> Self {
+        // Load values from the .env file if it exists
+        dotenv().ok();
+
+        Self {
+            backend_url: env::var("BACKEND_URL")
+                .expect("BACKEND_URL environment variable is not set"),
+            frontend_url: env::var("FRONTEND_URL")
+                .expect("FRONTEND_URL environment variable is not set"),
+            postgres: env::var("DATABASE_URL")
+                .expect("DATABASE_URL environment variable is not set"),
+            token: env::var("BOT_TOKEN").expect("BOT_TOKEN environment variable is not set"),
+        }
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
+    let args = EnvArgs::new();
 
-    let shared_state = Arc::new(app_state::AppState::default());
-
-    let listener = tokio::net::TcpListener::bind(get_addr(&shared_state.addr.clone()).await)
+    // todo: add config for addr
+    let listener = tokio::net::TcpListener::bind(get_addr(&args.backend_url).await)
         .await
         .unwrap();
+
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&args.postgres)
+        .await
+        .expect("failed to create pg connection");
+
+    // create_application_data_table(&pool).await.unwrap();
+
+    // Store the bot token in the database
+    store_bot_and_urls(&pool, &args.token, &args.backend_url, &args.frontend_url)
+        .await
+        .expect("failed to store bot token");
+
+    let shared_state = Arc::new(AppState {
+        pool,
+        bot: Bot::new(&args.token),
+    });
 
     axum::serve(listener, routes::configure_routes(shared_state))
         .await
@@ -46,10 +85,8 @@ fn init_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
 
-
-async fn get_addr(url_raw: &str) -> String
-{
-    let mut url = if url_raw.starts_with("http://") {
+async fn get_addr(url_raw: &str) -> String {
+    let url = if url_raw.starts_with("http://") {
         url_raw.trim_start_matches("http://").to_string()
     } else if url_raw.starts_with("https://") {
         url_raw.trim_start_matches("https://").to_string()
@@ -68,4 +105,40 @@ async fn get_addr(url_raw: &str) -> String
         error!("No port number found in the URL.");
         exit(0);
     }
+}
+
+pub async fn store_bot_and_urls(
+    pool: &PgPool,
+    bot_token: &str,
+    backend_url: &str,
+    frontend_url: &str,
+) -> Result<(), sqlx::Error> {
+    // Execute the upsert query
+    ApplicationData::soft_insert_application_data(
+        pool,
+        &ApplicationData {
+            id: 0,
+            app_name: "application_data".to_string(),
+            backend_url: Some(backend_url.to_string()),
+            frontend_url: Some(frontend_url.to_string()),
+            bot_token: Some(bot_token.to_string()),
+            oauth_url: None,
+            client_id: None,
+            redirect_uri: None,
+            client_secret: None,
+            guild_id: None,
+        },
+    )
+    .await
+    .expect("TODO: panic message");
+
+    // Fetch the updated values to verify the update
+    let result = ApplicationData::get_application_data(pool).await.unwrap();
+
+    debug!(
+        "Updated values: bot_token: {:?}, backend_url: {:?}, frontend_url: {:?}",
+        result.bot_token, result.backend_url, result.frontend_url
+    );
+
+    Ok(())
 }

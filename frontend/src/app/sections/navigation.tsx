@@ -16,11 +16,13 @@ export default function Navigation() {
     return (
         < nav
             className="fixed flex justify-between py-6 w-full lg:px-48 md:px-12 px-4 content-center bg-secondary z-10">
-            <div className="flex items-center ">
+            <a href="#Hero">
+                <div className="flex items-center">
                     <span className="bg-left-bottom font-pt-serif text-3xl font-bold bg-no-repeat pb-2 bg-100%">
                            membrs
                     </span>
-            </div>
+                </div>
+            </a>
             <ul className="font-montserrat items-center hidden md:flex">
                 <li className="mx-3 ">
                     <a className="growing-underline" href="#HowItWorks">
@@ -39,7 +41,7 @@ export default function Navigation() {
                 <button className="py-2 px-4 text-white bg-black rounded-3xl" onClick={togglePopup}>
                     Login
                 </button>
-                {popupVisible && <RedirectPopup redirectUrl={'http://localhost:3333/oauth/url'}/>}
+                {popupVisible && <RedirectPopup redirectUrl={`${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth/url`}/>}
             </div>
             <div id="showMenu" className="md:hidden">
                 <Image src='./assets/logos/Menu.svg' width={20} height={16} alt="Menu icon"/>
