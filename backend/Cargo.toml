@@ -34,3 +34,5 @@ membrs_lib = { path = "../lib" }
 clap = { version = "4.5.4", features = ["derive"] }
 chrono = "0.4.38"
 time = "0.3.36"
+hyper = "1.3.1"
+base64 = "0.22.1"

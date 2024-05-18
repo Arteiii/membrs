@@ -1,40 +1,42 @@
-'use client';
-
 import React, { useState } from 'react';
 
-const AdminLogin: React.FC = () => {
+interface AdminLoginProps {
+    onLoginSuccess: () => void;
+}
+
+const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState<string>('');
 
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
 
-
         const requestUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser`;
-
-
-        console.log("called handle sign in");
-        console.log(requestUrl);
 
         // Send GET request to backend with headers for username and password
         try {
             const response = await fetch(requestUrl, {
                 method: 'GET',
                 headers: {
-                    'Username': username,
-                    'Password': password
-                }
+                    'Authorization': `Basic ${btoa(`${username}:${password}`)}`
+                },
             });
 
             if (response.ok) {
                 // Handle successful authentication
                 console.log('Authentication successful');
+                localStorage.setItem('username', username);
+                localStorage.setItem('password', password);
+                onLoginSuccess();
             } else {
                 // Handle authentication failure
+                setError('Invalid username or password');
                 console.error('Authentication failed');
             }
         } catch (error) {
             console.error('Error during authentication:', error);
+            setError('Error during authentication. Please try again.');
         }
     };
 
@@ -85,6 +87,8 @@ const AdminLogin: React.FC = () => {
                                     />
                                 </div>
                             </div>
+
+                            {error && <p className="text-red-500 text-sm">{error}</p>}
 
                             <div>
                                 <button

@@ -1,14 +1,21 @@
 use std::sync::Arc;
 
 use axum::extract::State;
-use axum::http::HeaderMap;
+use axum::http::header::AUTHORIZATION;
+use axum::http::{HeaderMap, StatusCode};
+use axum::response::Response;
 use axum::Json;
+use base64::engine::general_purpose;
+use base64::Engine;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
+use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
+
 use crate::app_state::AppState;
 use crate::db::application_data::ApplicationData;
-use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
+use crate::db::users;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApplicationDataResult {
@@ -30,6 +37,18 @@ pub struct SetApplicationData {
     pub client_secret: String,
     pub guild_id: String,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct GetUsersResponse {
+    pub discord_id: String,
+    pub username: String,
+    pub avatar: Option<String>,
+    pub email: String,
+    pub banner: Option<String>,
+    pub expires_at: DateTime<Utc>,
+}
+
+
 
 impl From<ApplicationData> for ApplicationDataResult {
     fn from(data: ApplicationData) -> Self {
@@ -62,14 +81,6 @@ pub(crate) async fn get_config(
     Ok(Json(data.into()))
 }
 
-pub(crate) async fn get_bot_token(headers: HeaderMap) -> Result<String, String> {
-    if !authorize(&headers).await {
-        return Err("Invalid username or password".to_string());
-    };
-
-    Ok("test".to_string())
-}
-
 /// update the server id and adds all the members to the new one
 pub(crate) async fn update_server_id(headers: HeaderMap) -> Result<String, String> {
     if !authorize(&headers).await {
@@ -79,13 +90,50 @@ pub(crate) async fn update_server_id(headers: HeaderMap) -> Result<String, Strin
     Ok("test".to_string())
 }
 
-pub(crate) async fn authenticate_user(headers: HeaderMap) -> Result<Json<String>, Json<String>> {
+pub(crate) async fn authenticate_user(headers: HeaderMap) -> Result<String, Response<String>> {
     // Check if the username and password are correct
     if authorize(&headers).await {
-        Ok(Json("Success".to_string()))
+        Ok("Success".to_string())
     } else {
-        Err(Json("Invalid username or password".to_string()))
+        let response = Response::builder()
+            .status(StatusCode::UNAUTHORIZED)
+            .body("Invalid username or password".to_string())
+            .unwrap();
+        Err(response)
     }
+}
+
+pub(crate) async fn get_users(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<Json<Vec<GetUsersResponse>>, Json<String>> {
+    if !authorize(&headers).await {
+        return Err(Json("Invalid username or password".to_string()));
+    };
+
+    let data = match users::UserData::get_users(&state.pool, 10).await {
+        Ok(data) => data,
+        Err(err) => return Err(Json(format!("Failed to get data: {}", err))),
+    };
+
+    let mut users_response = Vec::new();
+
+    for user_data in data {
+        let expires_at = user_data.expires_at.unwrap_or_else(|| Utc::now());
+
+        let user_response = GetUsersResponse {
+            discord_id: user_data.discord_id.unwrap_or_else(|| "".to_string()),
+            username: user_data.username.unwrap_or_else(|| "".to_string()),
+            avatar: user_data.avatar,
+            email: user_data.email.unwrap_or_else(|| "".to_string()),
+            banner: user_data.banner,
+            expires_at,
+        };
+
+        users_response.push(user_response);
+    }
+
+    Ok(Json(users_response))
 }
 
 pub(crate) async fn set_config(
@@ -126,27 +174,27 @@ pub(crate) async fn set_config(
 /// rerun true if user was authenticated successfully
 /// false otherwise
 async fn authorize(headers: &HeaderMap) -> bool {
-    // Get the values of the 'Username' and 'Password' headers
-    let username_header = headers
-        .get("Username")
-        .ok_or_else(|| "Username header is missing")
-        .expect("Username failed")
-        .to_str()
-        .map_err(|_| "Failed to parse Username header value as string")
-        .expect("Username failed");
-
-    let password_header = headers
-        .get("Password")
-        .ok_or_else(|| "Password header is missing")
-        .expect("Password failed")
-        .to_str()
-        .map_err(|_| "Failed to parse Password header value as string")
-        .expect("Password failed");
-
-    // Check if the username and password are correct
-    if username_header == "admin" && password_header == "admin" {
-        true
-    } else {
-        false
+    // Check if Authorization header exists
+    if let Some(authorization_header) = headers.get(AUTHORIZATION) {
+        // Check if the Authorization header starts with "Basic "
+        if let Some(auth_str) = authorization_header.to_str().ok() {
+            if auth_str.starts_with("Basic ") {
+                // Decode the Base64 encoded username:password string
+                if let Ok(auth) = general_purpose::STANDARD
+                    .decode(auth_str.trim_start_matches("Basic ").as_bytes())
+                {
+                    // Convert the decoded bytes to a string
+                    if let Ok(auth_string) = String::from_utf8(auth) {
+                        // Split the string into username and password
+                        let mut parts = auth_string.splitn(2, ':');
+                        if let (Some(username), Some(password)) = (parts.next(), parts.next()) {
+                            // Check if the username and password are correct
+                            return username == "admin" && password == "admin";
+                        }
+                    }
+                }
+            }
+        }
     }
+    false
 }

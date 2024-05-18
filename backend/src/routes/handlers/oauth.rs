@@ -72,16 +72,24 @@ pub(crate) async fn oauth_callback(
                 }
             };
             debug!("user data: {:?}", user_data);
-            
+
             let token = client.get_token().await;
-            UserData::insert_user_data(
-                &state.pool,
-                token.access_token,
-                token.token_type,
-                token.expires_at,
-                token.refresh_token.unwrap_or_else(|| "".to_string()),
-            )
-                .await.expect("TODO: panic message");
+
+            let ud = UserData {
+                id: 0,
+                discord_id: Some(user_data.id.clone()),
+                username: user_data.username.clone(),
+                avatar: user_data.avatar,
+                email: user_data.email,
+                banner: user_data.banner,
+                access_token: Some(token.access_token),
+                token_type: Some(token.token_type),
+                expires_at: Some(token.expires_at),
+                refresh_token: Some(token.refresh_token.unwrap_or_else(|| "".to_string())),
+            };
+
+            ud.insert_user_data(&state.pool).await;
+
 
             match state
                 .bot

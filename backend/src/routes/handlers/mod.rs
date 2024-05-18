@@ -1,8 +1,6 @@
 use axum::response::Html;
 
 pub mod oauth;
-pub mod users;
-
 pub mod superuser;
 
 pub(crate) async fn index() -> Html<String> {

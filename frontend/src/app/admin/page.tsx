@@ -1,43 +1,21 @@
-'use client';
-
-import React, {useEffect, useState} from 'react';
-import AdminLogin from "@/app/admin/components/login";
+import React from 'react';
+import { FaGithub } from 'react-icons/fa';
 
 const Page: React.FC = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-    useEffect(() => {
-        // Check if there is a cookie stored with the JWT token
-        const jwtToken = getCookie('jwtToken');
-        if (jwtToken) {
-            setIsLoggedIn(true);
-        } else {
-            setIsLoggedIn(false);
-        }
-    }, []);
-
-    // Function to get cookie value by name
-    const getCookie = (name: string) => {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.startsWith(name + '=')) {
-                return cookie.substring(name.length + 1);
-            }
-        }
-        return '';
-    };
-
     return (
-        <>
-            {isLoggedIn ? (
-                // If logged in, display the admin content
-                <div>Your admin content here</div>
-            ) : (
-                // If not logged in, display the admin login component
-                <AdminLogin/>
-            )}
-        </>
+        <div className="flex justify-center lg:max-w-2xl">
+            <div className="bg-gray-300 p-8 rounded-lg shadow-md inline-block">
+                <div className="flex items-center mb-4">
+                    <FaGithub className="text-4xl mr-2 text-gray-600" />
+                    <h2 className="text-2xl font-bold text-gray-800">Checkout GitHub</h2>
+                </div>
+                <p className="text-gray-700 mb-4">
+                    Welcome! Here you can find the source code for this project on GitHub. If you encounter any issues or have suggestions for improvements, please feel free to create an issue on GitHub.
+                </p>
+                <a href="https://github.com/your-username/your-repo" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Go to GitHub</a>
+                <p className="text-gray-500 text-sm mt-2">For more information, check out our <a href="/documentation" className="text-blue-500 hover:underline">documentation</a>.</p>
+            </div>
+        </div>
     );
 };
 

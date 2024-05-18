@@ -1,9 +1,7 @@
 import RedirectPopup from '@/components/redirect-popup';
 
 const Page: React.FC = () => {
-    const baseUrl  = process.env.BACKEND_URL;
-
-    const redirectUrl = `${baseUrl}/oauth/url`;
+    const redirectUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth/url`;
 
     return (
         <div className="bg-gray-800 p-4">

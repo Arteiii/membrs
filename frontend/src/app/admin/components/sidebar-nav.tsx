@@ -1,44 +1,31 @@
-"use client"
+import React from 'react';
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-
-import { cn } from "@/lib/utils"
-import { buttonVariants } from "@/components/ui/button"
-
-interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
-    items: {
-        href: string
-        title: string
-    }[]
+interface SidebarNavItem {
+    title: string;
+    href: string;
+    customRender?: () => React.ReactNode;
 }
 
-export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
-    const pathname = usePathname()
+interface SidebarNavProps {
+    items: SidebarNavItem[];
+}
 
+export const SidebarNav: React.FC<SidebarNavProps> = ({ items }) => {
     return (
-        <nav
-            className={cn(
-                "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
-                className
-            )}
-            {...props}
-        >
-            {items.map((item) => (
-                <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                        buttonVariants({ variant: "ghost" }),
-                        pathname === item.href
-                            ? "bg-muted hover:bg-muted"
-                            : "hover:bg-transparent hover:underline",
-                        "justify-start"
+        <nav className="space-y-2">
+            {items.map((item, index) => (
+                <div key={index} >
+                    {item.customRender ? (
+                        item.customRender()
+                    ) : (
+                        <a className="block">
+                            <button className="py-2 px-4 rounded-md bg-gray-800 hover:bg-gray-700 focus:bg-gray-700">
+                                {item.title}
+                            </button>
+                        </a>
                     )}
-                >
-                    {item.title}
-                </Link>
+                </div>
             ))}
         </nav>
-    )
-}
+    );
+};
