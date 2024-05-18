@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image'
 
 // Define an array of feature items
 const featureItems = [
@@ -33,7 +34,12 @@ export default function Features() {
             <div className="md:grid md:grid-cols-2 md:grid-rows-2">
                 {featureItems.map((item, index) => (
                     <div key={index} className="flex items-start font-montserrat my-6 mr-10">
-                        <img src={item.image} alt='' className="h-7 mr-4" />
+                        <Image
+                            src={item.image}
+                            alt={`${item.title} icon`}
+                            className="h-7 mr-4"
+                            loading="lazy"
+                        />
                         <div>
                             <h3 className="font-semibold text-2xl">{item.title}</h3>
                             <p>{item.description}</p>

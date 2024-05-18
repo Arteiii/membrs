@@ -3,20 +3,25 @@ use std::process::exit;
 use std::sync::Arc;
 
 use dotenv::dotenv;
-use sqlx::postgres::PgPoolOptions;
+use rand::{Rng, thread_rng};
+use rand::distributions::Alphanumeric;
 use sqlx::PgPool;
-use tracing::{debug, error, Level};
+use sqlx::postgres::PgPoolOptions;
+use tracing::{debug, error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use membrs_lib::bot::Bot;
 
 use crate::app_state::AppState;
 use crate::db::application_data::ApplicationData;
+use crate::db::superuser::SuperUser;
 
 mod app_state;
 
 mod db;
 mod routes;
+
+mod handlers;
 
 struct EnvArgs {
     backend_url: String,
@@ -64,6 +69,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     store_bot_and_urls(&pool, &args.token, &args.backend_url, &args.frontend_url)
         .await
         .expect("failed to store bot token");
+
+    SuperUser::create_table(&pool).await.expect("failed to create superuser table");
+    
+    SuperUser::check_and_create_superuser(&pool).await
+                                                .expect("failed to store superuser");
 
     let shared_state = Arc::new(AppState {
         pool,
@@ -129,8 +139,8 @@ pub async fn store_bot_and_urls(
             guild_id: None,
         },
     )
-    .await
-    .expect("TODO: panic message");
+        .await
+        .expect("TODO: panic message");
 
     // Fetch the updated values to verify the update
     let result = ApplicationData::get_application_data(pool).await.unwrap();
@@ -142,3 +152,4 @@ pub async fn store_bot_and_urls(
 
     Ok(())
 }
+

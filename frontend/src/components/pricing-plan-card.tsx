@@ -1,4 +1,6 @@
 import React from 'react';
+import CheckedBox from '@public/assets/logos/CheckedBox.svg'
+import Image from 'next/image'
 
 interface PricingPlanCardProps {
     title: string;
@@ -20,7 +22,12 @@ const PricingPlanCard: React.FC<PricingPlanCardProps> = ({ title, price, period,
 
         {benefits.map((benefit, index) => (
             <div className="flex" key={index}>
-                <img src='./assets/logos/CheckedBox.svg' alt="" className="mr-1" />
+                <Image
+                    src={CheckedBox}
+                    className="mr-1"
+                    loading="lazy"
+                    alt="Caret Icon"
+                />
                 <p>{benefit}</p>
             </div>
         ))}

@@ -33,14 +33,12 @@ impl UserData {
                 )
             "#,
         )
-            .execute(pool)
-            .await?;
+        .execute(pool)
+        .await?;
         Ok(())
     }
 
-    pub async fn insert_user_data(
-        &self, pool: &PgPool,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn insert_user_data(&self, pool: &PgPool) -> Result<(), sqlx::Error> {
         sqlx::query!(
             r#"
             INSERT INTO user_data (
@@ -84,9 +82,9 @@ impl UserData {
                 SELECT * FROM user_data WHERE id = $1
             "#,
         )
-            .bind(id)
-            .fetch_optional(pool)
-            .await?;
+        .bind(id)
+        .fetch_optional(pool)
+        .await?;
         Ok(data)
     }
 
@@ -96,9 +94,9 @@ impl UserData {
             SELECT * FROM user_data ORDER BY id LIMIT $1
         "#,
         )
-            .bind(num)
-            .fetch_all(pool)
-            .await?;
+        .bind(num)
+        .fetch_all(pool)
+        .await?;
         Ok(data)
     }
 }

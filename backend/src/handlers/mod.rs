@@ -1,5 +1,4 @@
 use axum::response::Html;
-
 pub mod oauth;
 pub mod superuser;
 

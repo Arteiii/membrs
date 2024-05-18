@@ -1,7 +1,28 @@
-import Image from 'next/image';
+'use client';
 
-// @ts-ignore
-export default function UserTable({ users }) {
+import Image from 'next/image';
+import { FC } from 'react';
+
+// Define the user type
+interface User {
+    id: string;
+    avatar: string | null;
+    username: string;
+    email: string;
+    discord_id: string;
+    expires_at: string;
+}
+
+// Define the props type
+interface UserTableProps {
+    users: User[];
+}
+
+const UserTable: FC<UserTableProps> = ({ users }) => {
+    const imageLoader = ({ src, width }: { src: string; width: number }) => {
+        return `https://cdn.discordapp.com/avatars/${src}?size=${width}`;
+    };
+
     return (
         <div className="overflow-x-auto w-full md:w-auto md:max-w-full md:mx-auto">
             <table className="w-full md:w-max border-collapse rounded-lg overflow-hidden bg-gray-800 shadow-md">
@@ -20,7 +41,14 @@ export default function UserTable({ users }) {
                         <td className="px-4 py-2 border-r border-gray-700">
                             {user.avatar ? (
                                 <div className="w-12 h-12 overflow-hidden rounded-full border-2 border-gray-700">
-                                    <img src={`https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}?size=1024`} alt="Avatar" width={48} height={48} />
+                                    <Image
+                                        loader={imageLoader}
+                                        src={`${user.discord_id}/${user.avatar}`}
+                                        alt={`Avatar of ${user.username}`}
+                                        width={48}
+                                        height={48}
+                                        loading="lazy"
+                                    />
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full">No Avatar</div>
@@ -36,4 +64,6 @@ export default function UserTable({ users }) {
             </table>
         </div>
     );
-}
+};
+
+export default UserTable;

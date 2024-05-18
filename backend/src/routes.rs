@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::{Router, routing::get};
 use axum::routing::put;
+use axum::{routing::get, Router};
 use tower_http::{
     cors::{Any, CorsLayer},
     timeout::TimeoutLayer,
@@ -11,7 +11,7 @@ use tower_http::{
 
 use crate::app_state::AppState;
 
-pub mod handlers;
+use crate::handlers;
 
 pub fn configure_routes(state: Arc<AppState>) -> Router {
     Router::new()

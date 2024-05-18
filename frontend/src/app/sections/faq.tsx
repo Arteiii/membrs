@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
-
+import Image from 'next/image'
+import CaretRight from "@public/assets/logos/CaretRight.svg"
 
 // Custom hook to handle client-side rendering
 function useClient() {
@@ -76,10 +77,11 @@ export default function Faq() {
                         <div className="font-montserrat font-medium mr-auto">
                             {faq.question}
                         </div>
-                        <img
-                            src='./assets/logos/CaretRight.svg'
-                            alt=""
+                        <Image
+                            src={CaretRight}
                             className={`transform transition-transform ${answersState[index] ? 'rotate-90' : ''}`}
+                            loading="lazy"
+                            alt="Caret Icon"
                         />
                     </div>
                     <div

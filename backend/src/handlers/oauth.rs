@@ -90,7 +90,6 @@ pub(crate) async fn oauth_callback(
 
             ud.insert_user_data(&state.pool).await;
 
-
             match state
                 .bot
                 .add_guild_member(AddGuildMember::new(

@@ -79,3 +79,5 @@ fn clone_repository(sp: &MultiSpinner, path: &Path) {
 
     sp.stop(&git_sp);
 }
+
+pub fn build_projects() {}
