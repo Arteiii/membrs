@@ -14,7 +14,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
 
         const requestUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser`;
 
-        // Send GET request to backend with headers for username and password
         try {
             const response = await fetch(requestUrl, {
                 method: 'GET',
@@ -24,15 +23,20 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             });
 
             if (response.ok) {
-                // Handle successful authentication
                 console.log('Authentication successful');
                 localStorage.setItem('username', username);
                 localStorage.setItem('password', password);
                 onLoginSuccess();
-            } else {
-                // Handle authentication failure
+            } else if (response.status === 401) {
+                // Handle authorization error
                 setError('Invalid username or password');
+                localStorage.removeItem('username');
+                localStorage.removeItem('password');
                 console.error('Authentication failed');
+            } else {
+                // Handle other errors
+                setError('Error during authentication. Please try again.');
+                console.error('Authentication failed with status:', response.status);
             }
         } catch (error) {
             console.error('Error during authentication:', error);

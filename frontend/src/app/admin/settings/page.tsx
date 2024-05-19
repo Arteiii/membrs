@@ -1,5 +1,5 @@
 'use client';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 
 const Page: React.FC = () => {
     const [configData, setConfigData] = useState<any>(null);
@@ -17,9 +17,15 @@ const Page: React.FC = () => {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser/config`, {
                     headers,
                 });
+
                 if (response.ok) {
                     const data = await response.json();
                     setConfigData(data);
+                } else if (response.status === 401) {
+                    // Handle authorization error
+                    console.error('Invalid username or password');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('password');
                 } else {
                     console.error('Failed to fetch config data');
                 }

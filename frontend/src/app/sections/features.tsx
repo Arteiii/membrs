@@ -37,7 +37,9 @@ export default function Features() {
                         <Image
                             src={item.image}
                             alt={`${item.title} icon`}
-                            className="h-7 mr-4"
+                            width={28}
+                            height={28}
+                            className="mr-4"
                             loading="lazy"
                         />
                         <div>

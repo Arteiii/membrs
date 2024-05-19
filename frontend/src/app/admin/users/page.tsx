@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import UserTable from './UserTable';
 
 export default function Home() {
@@ -26,6 +26,11 @@ export default function Home() {
                 if (response.ok) {
                     const data = await response.json();
                     setUsers(data);
+                } else if (response.status === 401) {
+                    // Handle authorization error
+                    console.error('Invalid username or password');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('password');
                 } else {
                     console.error('Failed to fetch user data');
                 }
@@ -38,6 +43,6 @@ export default function Home() {
     }, []);
 
     return (
-        <UserTable users={users}/>
+        <UserTable users={users} />
     );
 }
