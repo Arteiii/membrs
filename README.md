@@ -33,7 +33,7 @@ I will do my best to make it as easy as possible.
 Currently, planned is an installer (membrs bin) that installs all dependencies and prerequisites for you.
 
 
-> [!INFO]
+> [!NOTE]
 > This project is not even close to perfect.
 > It is my first ever fullstack web application, and I am using it as a learning project.
 > Prior to this, I had never worked with technologies like PostgreSQL, Axum, Next.js, or OAuth with Discord.
