@@ -7,6 +7,10 @@ authors = ["Arteii <ben.arteii@proton.me>"]
 license = "AGPL-3"
 readme = "README.md"
 
+[[bin]]
+name = "backend"
+path = "src/main.rs"
+
 [dependencies]
 # config:
 dotenv = "0.15.0"

@@ -3,6 +3,7 @@ members = [
     "lib",
     "backend",
     "membrs",
+    "frontend",
 ]
 
 resolver = "2"

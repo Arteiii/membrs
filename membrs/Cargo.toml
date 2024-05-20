@@ -7,6 +7,9 @@ authors = ["Arteii <ben.arteii@proton.me>"]
 license = "AGPL-3"
 readme = "README.md"
 
+[[bin]]
+name = "membrs"
+path = "src/main.rs"
 
 [dependencies]
 zenity = { version = "3.5.0", features = ["menu", "progressbar", "spinner"] }

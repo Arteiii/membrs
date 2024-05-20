@@ -1,5 +1,6 @@
 use sqlx::{FromRow, PgPool};
 
+#[allow(dead_code)]
 #[derive(FromRow, Debug)]
 pub struct ApplicationData {
     pub id: i32,
@@ -15,6 +16,8 @@ pub struct ApplicationData {
 }
 
 impl ApplicationData {
+
+    #[allow(dead_code)]
     pub async fn create_application_data_table(pool: &PgPool) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
@@ -98,6 +101,7 @@ impl ApplicationData {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn insert_application_data(
         pool: &PgPool,
         data: &ApplicationData,
@@ -123,39 +127,7 @@ impl ApplicationData {
         Ok(data)
     }
 
-    pub async fn get_app_name(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT app_name FROM application_data
-            "#,
-        )
-        .fetch_optional(pool)
-        .await?;
-        Ok(data)
-    }
-
-    pub async fn get_backend_url(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT backend_url FROM application_data
-            "#,
-        )
-        .fetch_optional(pool)
-        .await?;
-        Ok(data)
-    }
-
-    pub async fn get_frontend_url(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT frontend_url FROM application_data
-            "#,
-        )
-        .fetch_optional(pool)
-        .await?;
-        Ok(data)
-    }
-
+    #[allow(dead_code)]
     pub async fn get_bot_token(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
         let data = sqlx::query_scalar(
             r#"
@@ -178,47 +150,5 @@ impl ApplicationData {
         Ok(data)
     }
 
-    pub async fn get_client_id(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT client_id FROM application_data
-            "#,
-        )
-        .fetch_one(pool)
-        .await?;
-        Ok(data)
-    }
 
-    pub async fn get_redirect_uri(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT redirect_uri FROM application_data
-            "#,
-        )
-        .fetch_one(pool)
-        .await?;
-        Ok(data)
-    }
-
-    pub async fn get_client_secret(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT client_secret FROM application_data
-            "#,
-        )
-        .fetch_optional(pool)
-        .await?;
-        Ok(data)
-    }
-
-    pub async fn get_guild_id(pool: &PgPool) -> Result<Option<String>, sqlx::Error> {
-        let data = sqlx::query_scalar(
-            r#"
-                SELECT guild_id FROM application_data
-            "#,
-        )
-        .fetch_optional(pool)
-        .await?;
-        Ok(data)
-    }
 }

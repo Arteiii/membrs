@@ -1,11 +1,9 @@
-use std::string::ParseError;
 use std::sync::Arc;
 
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
-use axum::http::header::AUTHORIZATION;
-use axum::Json;
 use axum::response::Response;
+use axum::Json;
 use base64::Engine;
 use base64::engine::general_purpose;
 use chrono::{DateTime, Utc};
@@ -15,10 +13,10 @@ use tracing::debug;
 
 use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
 
-use crate::app_state::AppState;
 use crate::db::application_data::ApplicationData;
 use crate::db::superuser::SuperUser;
 use crate::db::users;
+use crate::AppState;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApplicationDataResult {
@@ -92,17 +90,6 @@ pub(crate) async fn get_config(
     }
 }
 
-/// update the server id and adds all the members to the new one
-pub(crate) async fn update_server_id(
-    State(state): State<Arc<AppState>>,
-    headers: HeaderMap,
-) -> Result<String, String> {
-    if !authorize(&headers, &state.pool).await {
-        return Err("Invalid username or password".to_string());
-    };
-
-    Ok("test".to_string())
-}
 
 pub(crate) async fn authenticate_user(
     State(state): State<Arc<AppState>>,
@@ -137,7 +124,7 @@ pub(crate) async fn get_users(
             let mut users_response = Vec::new();
 
             for user_data in data {
-                let expires_at = user_data.expires_at.unwrap_or_else(|| Utc::now());
+                let expires_at = user_data.expires_at.unwrap_or_else(Utc::now);
 
                 let user_response = GetUsersResponse {
                     discord_id: user_data.discord_id.unwrap_or_else(|| "".to_string()),
@@ -162,7 +149,6 @@ pub(crate) async fn get_users(
         }
     }
 }
-
 
 pub(crate) async fn set_config(
     State(state): State<Arc<AppState>>,
@@ -217,7 +203,8 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
     };
 
     // Decode the Base64 encoded username:password string
-    let auth_decoded = match base64::decode(auth_str.trim_start_matches("Basic ")) {
+    let auth_decoded = match general_purpose::STANDARD
+        .decode(auth_str.trim_start_matches("Basic ")) {
         Ok(auth_decoded) => auth_decoded,
         Err(e) => {
             error!("Error decoding Base64: {}", e);

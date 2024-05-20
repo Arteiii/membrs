@@ -2,6 +2,16 @@
 
 selfhosted oauth discord bot for managing discord members
 
+> [!TIP]
+> Be sure to read [our documentation][documentation::web]. It provides guidance on initial setup of your mail server.
+
+> [!IMPORTANT]
+> If you have issues, please search through [the documentation][documentation::web] **for your version** before opening an issue.
+>
+> The issue tracker is for issues, not for personal support.  
+> Make sure the version of the documentation matches the image version you're using!
+
+
 you can find the detailed readmes in the project folders
 
 ![](./preview/msedge_YJFwwVlzxc.gif)
@@ -22,15 +32,15 @@ As I am incredibly annoyed by projects that are hard to set up,
 I will do my best to make it as easy as possible.
 Currently, planned is an installer (membrs bin) that installs all dependencies and prerequisites for you.
 
-## Disclaimer
 
-This project is not even close to perfect.
-It is my first ever fullstack web application, and I am using it as a learning project.
-Prior to this, I had never worked with technologies like PostgreSQL, Axum, Next.js, or OAuth with Discord.
-
-Given that this is a learning project, you might encounter bugs, incomplete features, or suboptimal code.
-Your understanding and patience are appreciated.
-If you have any suggestions or improvements, feel free to contribute!
+> [!INFO]
+> This project is not even close to perfect.
+> It is my first ever fullstack web application, and I am using it as a learning project.
+> Prior to this, I had never worked with technologies like PostgreSQL, Axum, Next.js, or OAuth with Discord.
+> 
+> Given that this is a learning project, you might encounter bugs, incomplete features, or suboptimal code.
+> Your understanding and patience are appreciated.
+> If you have any suggestions or improvements, feel free to contribute!
 
 
 ## License

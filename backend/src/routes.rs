@@ -9,7 +9,7 @@ use tower_http::{
     trace::TraceLayer,
 };
 
-use crate::app_state::AppState;
+use crate::AppState;
 
 use crate::handlers;
 

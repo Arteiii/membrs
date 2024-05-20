@@ -12,8 +12,8 @@ use membrs_lib::model::user;
 use membrs_lib::oauth;
 use membrs_lib::oauth::{ClientData, OAuthToken};
 
-use crate::app_state::AppState;
 use crate::db::{application_data::ApplicationData, users::UserData};
+use crate::AppState;
 
 #[derive(Deserialize, Serialize)]
 struct User {
@@ -88,7 +88,9 @@ pub(crate) async fn oauth_callback(
                 refresh_token: Some(token.refresh_token.unwrap_or_else(|| "".to_string())),
             };
 
-            ud.insert_user_data(&state.pool).await;
+            if let Err(err) = ud.insert_user_data(&state.pool).await {
+                error!("Failed to insert user data: {:?}", err);
+            }
 
             match state
                 .bot
