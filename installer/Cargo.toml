@@ -8,7 +8,7 @@ license = "AGPL-3"
 readme = "README.md"
 
 [[bin]]
-name = "membrs"
+name = "installer"
 path = "src/main.rs"
 
 [dependencies]

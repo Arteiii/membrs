@@ -20,7 +20,7 @@ fn create_dir(sp: &MultiSpinner, path: &Path) {
     let frontend_sp = sp.add(Frames::dot_spinner1());
     sp.set_text(&frontend_sp, "Creating membrs directory...".to_string());
 
-    let frontend_dir = path.join("membrs");
+    let frontend_dir = path.join("../..");
     if let Err(err) = fs::create_dir_all(frontend_dir) {
         sp.set_styled_text(
             &frontend_sp,
@@ -52,7 +52,7 @@ fn clone_repository(sp: &MultiSpinner, path: &Path) {
 
     let repository_url = "https://github.com/Arteiii/membrs.git";
 
-    match Repository::clone(repository_url, path.join("membrs")) {
+    match Repository::clone(repository_url, path.join("../..")) {
         Ok(_) => {
             sp.set_styled_text(
                 &git_sp,

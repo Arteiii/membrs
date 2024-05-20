@@ -2,15 +2,6 @@
 
 selfhosted oauth discord bot for managing discord members
 
-> [!TIP]
-> Be sure to read [our documentation][documentation::web]. It provides guidance on initial setup of your mail server.
-
-> [!IMPORTANT]
-> If you have issues, please search through [the documentation][documentation::web] **for your version** before opening an issue.
->
-> The issue tracker is for issues, not for personal support.  
-> Make sure the version of the documentation matches the image version you're using!
-
 
 you can find the detailed readmes in the project folders
 

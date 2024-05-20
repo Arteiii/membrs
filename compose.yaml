@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  rust-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rust-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  nextjs-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nextjs-frontend
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres-data:
