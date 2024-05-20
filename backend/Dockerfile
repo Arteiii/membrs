@@ -16,7 +16,7 @@ RUN rm -rf target/release/build \
     && rm -rf target/release/.fingerprint
 
 
-FROM ubuntu:trusty
+FROM ubuntu:latest
 
 RUN apt-get update
 RUN apt-get install -y openssl
