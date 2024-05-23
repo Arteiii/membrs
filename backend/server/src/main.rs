@@ -24,6 +24,7 @@ struct EnvArgs {
 	frontend_url: String,
 	postgres: String,
 	token: Option<String>,
+	port: String
 }
 
 /// helper struct to share data using states
@@ -56,9 +57,13 @@ impl EnvArgs {
 		let postgres_db = env::var("POSTGRES_DB")
 			.expect("POSTGRES_DB environment variable is not set");
 		let postgres_host = env::var("POSTGRES_HOST")
-			.unwrap_or_else(|_| "localhost".to_string()); // default to localhost if not set
+			.unwrap_or_else(|_| "localhost".to_string()); // default localhost if not set
 		let postgres_port = env::var("POSTGRES_PORT")
-			.unwrap_or_else(|_| "5432".to_string()); // default to 5432 if not set
+			.unwrap_or_else(|_| "5432".to_string()); // default 5432 if not set
+
+		let port = env::var("PORT")
+			.unwrap_or_else(|_| "8000".to_string()); // set default prot to 8000
+
 
 		// Construct the DATABASE_URL
 		let postgres = format!(
@@ -71,6 +76,7 @@ impl EnvArgs {
 				.expect("BACKEND_URL environment variable is not set"),
 			frontend_url: env::var("FRONTEND_URL")
 				.expect("FRONTEND_URL environment variable is not set"),
+			port,
 			postgres,
 			token,
 		}
@@ -83,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let args = EnvArgs::new();
 
 	// todo: add config for addr
-	let listener = tokio::net::TcpListener::bind(get_addr(&args.backend_url).await)
+	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0{}", &args.port))
 		.await
 		.unwrap();
 	debug!("connecting to: {:?}", &args.postgres);
@@ -120,33 +126,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[inline(always)]
 fn init_tracing() {
 	let subscriber = FmtSubscriber::builder()
-		.with_max_level(Level::DEBUG)
+		.with_max_level(Level::TRACE)
 		.finish();
 
 	tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
-}
-
-#[inline(always)]
-async fn get_addr(url_raw: &str) -> String {
-	let url = if url_raw.starts_with("http://") {
-		url_raw.trim_start_matches("http://").to_string()
-	} else if url_raw.starts_with("https://") {
-		url_raw.trim_start_matches("https://").to_string()
-	} else {
-		url_raw.to_string()
-	};
-
-	if let Some(colon_pos) = url.rfind(':') {
-		let port = &url[colon_pos..];
-
-		let full = format!("0.0.0.0{}", port);
-		debug!("formatted addr: {}", &full);
-
-		full
-	} else {
-		error!("No port number found in the URL.");
-		exit(0);
-	}
 }
 
 #[inline(always)]
