@@ -17,6 +17,11 @@ to download and directly run it, you can use:
 curl -O -L https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
 ```
 
+### Podman
+
+since podman doesn't change ur actual firewall configurations make sure to update them yourself
+
+
 ## Description
 
 As I am incredibly annoyed by projects that are hard to set up, 

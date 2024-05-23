@@ -89,7 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let args = EnvArgs::new();
 
 	// todo: add config for addr
-	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0{}", &args.port))
+	let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &args.port))
 		.await
 		.unwrap();
 	debug!("connecting to: {:?}", &args.postgres);
