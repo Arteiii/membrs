@@ -5,13 +5,14 @@ use std::sync::Arc;
 use dotenv::dotenv;
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
-use tracing::{debug, error, Level};
+use tracing::{debug, error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use membrs_lib::bot::Bot;
 
 use crate::db::application_data::ApplicationData;
 use crate::db::superuser::SuperUser;
+use crate::db::users::UserData;
 
 mod db;
 mod routes;
@@ -22,7 +23,7 @@ struct EnvArgs {
 	backend_url: String,
 	frontend_url: String,
 	postgres: String,
-	token: String,
+	token: Option<String>,
 }
 
 /// helper struct to share data using states
@@ -30,22 +31,48 @@ pub struct AppState {
 	/// postgresql pool
 	pub pool: PgPool,
 	/// discord bot instance
-	pub bot: Bot,
+	pub bot: Option<Bot>,
 }
 
 impl EnvArgs {
+	#[inline]
 	fn new() -> Self {
 		// Load values from the .env file if it exists
 		dotenv().ok();
+
+		let token = match env::var("BOT_TOKEN") {
+			Ok(token) => Some(token),
+			Err(err) => {
+				error!("{:?}", err);
+				None
+			}
+		};
+
+		// Fetch PostgreSQL connection details
+		let postgres_user = env::var("POSTGRES_USER")
+			.expect("POSTGRES_USER environment variable is not set");
+		let postgres_password = env::var("POSTGRES_PASSWORD")
+			.expect("POSTGRES_PASSWORD environment variable is not set");
+		let postgres_db = env::var("POSTGRES_DB")
+			.expect("POSTGRES_DB environment variable is not set");
+		let postgres_host = env::var("POSTGRES_HOST")
+			.unwrap_or_else(|_| "localhost".to_string()); // default to localhost if not set
+		let postgres_port = env::var("POSTGRES_PORT")
+			.unwrap_or_else(|_| "5432".to_string()); // default to 5432 if not set
+
+		// Construct the DATABASE_URL
+		let postgres = format!(
+			"postgres://{}:{}@{}:{}/{}",
+			postgres_user, postgres_password, postgres_host, postgres_port, postgres_db
+		);
 
 		Self {
 			backend_url: env::var("BACKEND_URL")
 				.expect("BACKEND_URL environment variable is not set"),
 			frontend_url: env::var("FRONTEND_URL")
 				.expect("FRONTEND_URL environment variable is not set"),
-			postgres: env::var("DATABASE_URL")
-				.expect("DATABASE_URL environment variable is not set"),
-			token: env::var("BOT_TOKEN").expect("BOT_TOKEN environment variable is not set"),
+			postgres,
+			token,
 		}
 	}
 }
@@ -61,30 +88,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.unwrap();
 	debug!("connecting to: {:?}", &args.postgres);
 
-	let pool = PgPoolOptions::new()
+	let pool: PgPool = PgPoolOptions::new()
 		.max_connections(5)
 		.connect(&args.postgres)
 		.await
 		.expect("failed to create pg connection");
 
-	
+	create_tables(&pool).await;
+
 	// Store the bot token in the database
 	store_bot_and_urls(&pool, &args.token, &args.backend_url, &args.frontend_url)
 		.await
 		.expect("failed to store bot token");
-
-	SuperUser::create_table(&pool)
-		.await
-		.expect("failed to create superuser table");
+	
 
 	SuperUser::check_and_create_superuser(&pool)
 		.await
 		.expect("failed to store superuser");
 
-	let shared_state = Arc::new(AppState {
-		pool,
-		bot: Bot::new(&args.token),
-	});
+	let bot = args.token.as_ref().map(|token| Bot::new(&token));
+
+	let shared_state = Arc::new(AppState { pool, bot });
 
 	axum::serve(listener, routes::configure_routes(shared_state))
 		.await
@@ -93,6 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	Ok(())
 }
 
+#[inline(always)]
 fn init_tracing() {
 	let subscriber = FmtSubscriber::builder()
 		.with_max_level(Level::DEBUG)
@@ -101,6 +126,7 @@ fn init_tracing() {
 	tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
 
+#[inline(always)]
 async fn get_addr(url_raw: &str) -> String {
 	let url = if url_raw.starts_with("http://") {
 		url_raw.trim_start_matches("http://").to_string()
@@ -123,9 +149,10 @@ async fn get_addr(url_raw: &str) -> String {
 	}
 }
 
+#[inline(always)]
 pub async fn store_bot_and_urls(
 	pool: &PgPool,
-	bot_token: &str,
+	bot_token: &Option<String>,
 	backend_url: &str,
 	frontend_url: &str,
 ) -> Result<(), sqlx::Error> {
@@ -137,7 +164,7 @@ pub async fn store_bot_and_urls(
 			app_name: "application_data".to_string(),
 			backend_url: Some(backend_url.to_string()),
 			frontend_url: Some(frontend_url.to_string()),
-			bot_token: Some(bot_token.to_string()),
+			bot_token: bot_token.clone(),
 			oauth_url: None,
 			client_id: None,
 			redirect_uri: None,
@@ -157,4 +184,38 @@ pub async fn store_bot_and_urls(
     );
 
 	Ok(())
+}
+
+
+#[inline(always)]
+pub async fn create_tables(pool: &PgPool) {
+	match ApplicationData::create_application_data_table(pool).await {
+		Ok(_) => {
+			info!("Application data table creation successful");
+		}
+		Err(err) => {
+			error!("Error creating application data table: {:?}", err);
+			panic!("Error creating application data table: {:?}", err);
+		}
+	}
+
+	match SuperUser::create_table(pool).await {
+		Ok(_) => {
+			info!("SuperUser table creation successful");
+		}
+		Err(err) => {
+			error!("Error creating SuperUser table: {:?}", err);
+			panic!("Error creating SuperUser table: {:?}", err);
+		}
+	}
+
+	match UserData::create_user_data_table(pool).await {
+		Ok(_) => {
+			info!("User data table creation successful");
+		}
+		Err(err) => {
+			error!("Error creating user data table: {:?}", err);
+			panic!("Error creating user data table: {:?}", err);
+		}
+	}
 }

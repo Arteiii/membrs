@@ -39,4 +39,4 @@ time = "0.3.36"
 base64 = "0.22.1"
 rand = "0.8.5"
 
-membrs_lib = { path = "../lib" }
+membrs_lib = { path = "../membrs_lib" }

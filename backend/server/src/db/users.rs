@@ -38,7 +38,6 @@ impl UserData {
         Ok(())
     }
 
-
     pub async fn insert_user_data(&self, pool: &PgPool) -> Result<(), Error> {
         let insert_query = r#"
             INSERT INTO user_data (
@@ -72,12 +71,8 @@ impl UserData {
             .execute(pool)
             .await
         {
-            Ok(_) => {
-                Ok(())
-            }
-            Err(e) => {
-                Err(e)
-            }
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
         }
     }
 

@@ -16,7 +16,6 @@ pub struct ApplicationData {
 }
 
 impl ApplicationData {
-
     #[allow(dead_code)]
     pub async fn create_application_data_table(pool: &PgPool) -> Result<(), sqlx::Error> {
         sqlx::query(
@@ -149,6 +148,4 @@ impl ApplicationData {
         .await?;
         Ok(data)
     }
-
-
 }

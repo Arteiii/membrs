@@ -4,8 +4,8 @@ use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::Response;
 use axum::Json;
-use base64::Engine;
 use base64::engine::general_purpose;
+use base64::Engine;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -89,7 +89,6 @@ pub(crate) async fn get_config(
         Ok(Json(data.into()))
     }
 }
-
 
 pub(crate) async fn authenticate_user(
     State(state): State<Arc<AppState>>,
@@ -203,8 +202,8 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
     };
 
     // Decode the Base64 encoded username:password string
-    let auth_decoded = match general_purpose::STANDARD
-        .decode(auth_str.trim_start_matches("Basic ")) {
+    let auth_decoded = match general_purpose::STANDARD.decode(auth_str.trim_start_matches("Basic "))
+    {
         Ok(auth_decoded) => auth_decoded,
         Err(e) => {
             error!("Error decoding Base64: {}", e);

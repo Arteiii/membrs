@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, error};
 
-use membrs_lib::bot::AddGuildMember;
+use membrs_lib::bot::{AddGuildMember};
 use membrs_lib::model::user;
 use membrs_lib::oauth;
 use membrs_lib::oauth::{ClientData, OAuthToken};
@@ -38,6 +38,16 @@ pub(crate) async fn oauth_callback(
                 "/login/complete?status=failed&error=unknown_error",
             ));
         }
+    };
+
+    let bot = match &state.bot {
+        None => {
+            error!("Bot is not set up correctly. Please visit the admin dashboard.");
+            return Err(Redirect::temporary(
+				"/login/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator.",
+			));
+        }
+        Some(bot) => bot,
     };
 
     let cdata = ClientData {
@@ -92,8 +102,7 @@ pub(crate) async fn oauth_callback(
                 error!("Failed to insert user data: {:?}", err);
             }
 
-            match state
-                .bot
+            match bot
                 .add_guild_member(AddGuildMember::new(
                     &data.guild_id.unwrap_or_else(|| "Unknown".to_string()),
                     &user_data.id,
