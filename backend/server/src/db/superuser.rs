@@ -1,5 +1,3 @@
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
 use sqlx::{FromRow, PgPool, Result};
 use tracing::info;
 
@@ -63,7 +61,7 @@ impl SuperUser {
         Ok(superuser)
     }
 
-    // Function to check if superuser entry exists, and create if not
+    /// Function to check if superuser entry exists, and create if not
     pub async fn check_and_create_superuser(pool: &PgPool) -> Result<()> {
         // Check if superuser entry already exists
         if let Some(superuser) = SuperUser::fetch(pool).await? {
@@ -74,22 +72,11 @@ impl SuperUser {
             return Ok(());
         }
 
-        // Generate random password and username
-        let password: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(8)
-            .map(char::from)
-            .collect();
-        let username: String = thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(8)
-            .map(char::from)
-            .collect();
+        let password: String = "admin".to_string();
+        let username: String = "admin".to_string();
 
-        // Insert the generated password and username
         SuperUser::upsert(pool, Some(password.clone()), Some(username.clone())).await?;
 
-        // Print the generated password and username
         info!(
             "Created superuser with username: {:?} and password: {:?}",
             username, password

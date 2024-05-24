@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::routing::put;
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use tower_http::{
     cors::{Any, CorsLayer},
     timeout::TimeoutLayer,
@@ -19,9 +21,9 @@ pub fn configure_routes(state: Arc<AppState>) -> Router {
         .route("/oauth", get(handlers::oauth::oauth_callback))
         .route("/oauth/url", get(handlers::oauth::oauth_url))
         .route("/superuser/config", get(handlers::superuser::get_config))
+        .route("/superuser/config", post(handlers::superuser::set_config))
         .route("/superuser", get(handlers::superuser::authenticate_user))
         .route("/superuser/users", get(handlers::superuser::get_users))
-        .route("/superuser/config", put(handlers::superuser::set_config))
         .with_state(state)
         .layer(TimeoutLayer::new(Duration::from_secs(90))) // abort request after 90sec
         .layer(CorsLayer::new().allow_origin(Any).allow_headers(Any))

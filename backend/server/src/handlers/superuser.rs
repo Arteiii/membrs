@@ -9,7 +9,7 @@ use base64::Engine;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use tracing::debug;
+use tracing::{debug, error, info};
 
 use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
 
@@ -179,7 +179,7 @@ pub(crate) async fn set_config(
 
     ApplicationData::soft_insert_application_data(&state.pool, &app_data)
         .await
-        .expect("TODO: panic message");
+        .expect("failed to insert data at set_config endpoint");
 
     Ok(Json("Updated Config".to_string()))
 }
@@ -187,18 +187,22 @@ pub(crate) async fn set_config(
 /// rerun true if user was authenticated successfully
 /// false otherwise
 async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
-    use tracing::error;
-
     // Check if Authorization header exists
     let authorization_header = match headers.get("Authorization") {
         Some(header) => header,
-        None => return false,
+        None => {
+            error!("attempted login with missing authorization header");
+            return false;
+        }
     };
 
     // Check if the Authorization header starts with "Basic "
     let auth_str = match authorization_header.to_str().ok() {
         Some(auth_str) if auth_str.starts_with("Basic ") => auth_str,
-        _ => return false,
+        _ => {
+            error!("attempted login with wrongly formated authorization header");
+            return false;
+        }
     };
 
     // Decode the Base64 encoded username:password string
@@ -224,7 +228,10 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
     let mut parts = auth_string.splitn(2, ':');
     let (username, password) = match (parts.next(), parts.next()) {
         (Some(username), Some(password)) => (username, password),
-        _ => return false,
+        _ => {
+            error!("attempted login with wrongly formated authorization header");
+            return false;
+        }
     };
 
     // Fetch the superuser from the database
@@ -243,9 +250,18 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
     // Check if the username and password match the superuser
     let authenticated = match (superuser.username.as_deref(), superuser.password.as_deref()) {
         (Some(super_username), Some(super_password)) => {
-            super_username == username && super_password == password
+            if super_username == username && super_password == password {
+                info!("login successfully as: {}", username);
+                true
+            } else {
+                error!("Username or password mismatch");
+                false
+            }
         }
-        _ => false,
+        _ => {
+            error!("Attempted login with wrongly formatted authorization header");
+            false
+        }
     };
 
     authenticated

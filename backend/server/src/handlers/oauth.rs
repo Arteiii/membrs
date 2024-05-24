@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, error};
 
-use membrs_lib::bot::{AddGuildMember};
+use membrs_lib::bot::AddGuildMember;
 use membrs_lib::model::user;
 use membrs_lib::oauth;
 use membrs_lib::oauth::{ClientData, OAuthToken};
@@ -44,8 +44,8 @@ pub(crate) async fn oauth_callback(
         None => {
             error!("Bot is not set up correctly. Please visit the admin dashboard.");
             return Err(Redirect::temporary(
-				"/login/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator.",
-			));
+                "/login/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator.",
+            ));
         }
         Some(bot) => bot,
     };
@@ -142,24 +142,22 @@ pub(crate) async fn oauth_callback(
     }
 }
 
-pub(crate) async fn oauth_url(State(state): State<Arc<AppState>>) -> Result<String, String> {
+pub(crate) async fn oauth_url(State(state): State<Arc<AppState>>) -> Result<Redirect, Redirect> {
     match ApplicationData::get_oauth_url(&state.pool).await {
         Ok(cdata) => match cdata {
-            Some(url) => Ok(url),
+            Some(url) => Ok(Redirect::temporary(&url)),
             None => {
                 eprintln!("OAuth URL is NULL in the database");
-                Err(
-                    "/login/complete?status=failed&error=OAuth URL is not set in the database"
-                        .into(),
-                )
+                Err(Redirect::temporary(
+                    "/login/complete?status=failed&error=OAuth URL is Null",
+                ))
             }
         },
         Err(err) => {
             eprintln!("Failed to fetch OAuth URL: {:?}", err);
-            Err(
-                "/login/complete?status=failed&error=Failed to fetch OAuth URL from the database"
-                    .into(),
-            )
+            Err(Redirect::temporary(
+                "/login/complete?status=failed&error=Failed to fetch OAuth URL",
+            ))
         }
     }
 }
