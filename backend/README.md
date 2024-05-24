@@ -2,34 +2,36 @@
 
 requires postgresql !!!!
 
-
 ## ENV vars
 
-The Client ID from your Discord application.
-You can find it in the Discord Developer Portal: https://discord.com/developers/applications
+Make sure to set the following environment variables:
 
-````shell
-CLIENT_ID=
-````
+- POSTGRES_USER: The username for the PostgreSQL database
+- POSTGRES_PASSWORD: The password for the PostgreSQL database
+- POSTGRES_DB: The name of the PostgreSQL database
+- POSTGRES_PORT: The port on which PostgreSQL is running (default is 5432)
+- POSTGRES_HOST: The hostname of the PostgreSQL server
+- BACKEND_URL: The URL of the backend service
+- FRONTEND_URL: The URL of the frontend service
+- RUST_LOG: The logging level for Rust (e.g., INFO, DEBUG)
+- 
+To get log output while the container is running, use the following commands:
 
-The Client Secret from your Discord application.
-You can find it in the Discord Developer Portal: https://discord.com/developers/applications
+```shell
+docker logs membrs-backend  # Prints the log history
+# or
+docker logs -f membrs-backend  # Follow mode keeps streaming the output
+```
 
-````shell
-CLIENT_SECRET=
-````
+## Lib
 
-The Bot Token for your Discord bot.
-You can get it by creating a bot user in the Discord Developer Portal and copying the
-token: https://discord.com/developers/applications
-
-````shell
-BOT_TOKEN=
-````
-
+This project includes a basic helper library created to facilitate working with the Discord API.  
+Note that there are already more advanced libraries available for working with Discord in Rust. Instead, consider using:
+- [serenity](https://github.com/serenity-rs/serenity)  
+- [poise](https://github.com/serenity-rs/poise)
 
 ## License
 
-this project is licensed under the AGPL v3 license
+this project is licensed under the AGPLv3 license
 
 see more in the [License file](LICENSE-AGPL-3).

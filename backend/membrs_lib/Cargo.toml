@@ -1,11 +1,11 @@
 [package]
 name = "membrs_lib"
 version = "0.1.0"
-publish = true
+publish = false
 edition = "2021"
 authors = ["Arteii <ben.arteii@proton.me>"]
 license = "AGPL-3"
-readme = "README.md"
+readme = "../README.md"
 
 
 [dependencies]
