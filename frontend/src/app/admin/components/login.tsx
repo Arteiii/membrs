@@ -12,7 +12,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const requestUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser`;
+        const requestUrl = `${process.env.NEXT_PUBLIC_URL}/api/superuser`;
 
         try {
             const response = await fetch(requestUrl, {
@@ -57,7 +57,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                     </p>
                     <div className="lg:max-w-sm mx-auto">
                         <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
-                            <div className="rounded-md shadow-sm -space-y-px">
+                            <div className="rounded shadow-sm -space-y-px">
                                 <div>
                                     <label htmlFor="username" className="sr-only">
                                         Username
@@ -70,7 +70,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                                         required
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="appearance-none bg-slate-800 rounded-none relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                        className="appearance-none bg-slate-800 rounded-t relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                         placeholder="Username"
                                     />
                                 </div>
@@ -86,7 +86,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="appearance-none rounded-none bg-slate-800 relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                                        className="appearance-none rounded-b bg-slate-800 relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                                         placeholder="Password"
                                     />
                                 </div>
@@ -97,7 +97,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                             <div>
                                 <button
                                     type="submit"
-                                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    className="group rounded relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                 >
                                     Sign in
                                 </button>
