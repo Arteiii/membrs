@@ -41,7 +41,7 @@ export default function Hero() {
                             Login
                         </button>
                         {/* Render the popup if visible */}
-                        {popupVisible && <RedirectPopup redirectUrl={`${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth/url`}/>}
+                        {popupVisible && <RedirectPopup redirectUrl={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`}/>}
                     </div>
                 </div>
             </div>

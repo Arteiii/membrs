@@ -16,7 +16,7 @@ export default function Home() {
                     headers.set('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
                 }
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser/users`, {
+                const response = await fetch(`${process.env.NEXT_BACKEND_URL}/superuser/users`, {
                     method: 'GET',
                     headers,
                 });

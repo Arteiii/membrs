@@ -14,7 +14,7 @@ const Page: React.FC = () => {
                     headers.set('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
                 }
 
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superuser/config`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/superuser/config`, {
                     headers,
                 });
 
