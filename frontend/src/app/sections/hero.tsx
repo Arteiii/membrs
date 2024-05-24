@@ -3,6 +3,8 @@
 import RedirectPopup from "@/components/redirect-popup";
 import {GitHubLogoIcon} from "@radix-ui/react-icons";
 import {useState} from 'react';
+import Link from 'next/link';
+
 
 export default function Hero() {
     const [popupVisible, setPopupVisible] = useState(false); // State to track popup visibility
@@ -28,25 +30,29 @@ export default function Hero() {
                     facilitating efficient backup and essential operations.
                 </p>
                 <div className="font-montserrat flex">
-                    <a href="https://github.com/Arteiii/membrs" target="_blank" className="flex items-center">
-                        <button
-                            className="flex bg-black px-6 py-4 rounded-lg border-2 border-black border-solid text-white mr-2 mb-2">
-                            <GitHubLogoIcon height={24} width={24} className="mr-3"></GitHubLogoIcon>
-                            Checkout GitHub
-                        </button>
-                    </a>
-                    <div>
-                        <button onClick={togglePopup}
-                                className="px-6 py-4 border-2 border-black border-solid rounded-lg">
-                            Login
-                        </button>
-                        {/* Render the popup if visible */}
-                        {popupVisible && <RedirectPopup redirectUrl={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`}/>}
-                    </div>
+                    <Link href="https://github.com/Arteiii/membrs" passHref legacyBehavior
+                          className="flex items-center">
+                        <a target="_blank">
+                            <button
+                                className="flex bg-black px-6 py-4 rounded-lg border-2 border-black border-solid text-white mr-2 mb-2">
+                                <GitHubLogoIcon height={24} width={24} className="mr-3"></GitHubLogoIcon>
+                                Checkout GitHub
+                            </button>
+                        </a>
+                    </Link>
+                    <Link href={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`} passHref legacyBehavior>
+                        <a target="_blank">
+                            <button onClick={togglePopup}
+                                    className="px-6 py-4 border-2 border-black border-solid rounded-lg">
+                                Login
+                            </button>
+                        </a>
+                    </Link>
                 </div>
             </div>
             <div className="flex justify-around md:block mt-8 md:mt-0 md:flex-1">
             </div>
         </section>
-    );
+    )
+        ;
 }

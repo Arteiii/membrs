@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 const Page: React.FC = () => {
     const [configData, setConfigData] = useState<any>(null);
+    const [editableFields, setEditableFields] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
         const fetchConfigData = async () => {
@@ -22,7 +23,6 @@ const Page: React.FC = () => {
                     const data = await response.json();
                     setConfigData(data);
                 } else if (response.status === 401) {
-                    // Handle authorization error
                     console.error('Invalid username or password');
                     localStorage.removeItem('username');
                     localStorage.removeItem('password');
@@ -37,43 +37,99 @@ const Page: React.FC = () => {
         fetchConfigData();
     }, []);
 
+    const handleFieldChange = (field: string, value: string) => {
+        setConfigData((prevConfigData: any) => ({
+            ...prevConfigData,
+            [field]: value,
+        }));
+    };
+
+    const toggleEdit = (field: string) => {
+        setEditableFields((prevEditableFields) => ({
+            ...prevEditableFields,
+            [field]: !prevEditableFields[field],
+        }));
+    };
+
+    const handleSave = async () => {
+        try {
+            const username = localStorage.getItem('username');
+            const password = localStorage.getItem('password');
+            const headers = new Headers();
+            headers.set('Content-Type', 'application/json');
+            if (username && password) {
+                headers.set('Authorization', `Basic ${btoa(`${username}:${password}`)}`);
+            }
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/superuser/config`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(configData),
+            });
+
+            if (response.ok) {
+                console.log('Config data saved successfully');
+            } else {
+                console.error('Failed to save config data');
+            }
+        } catch (error) {
+            console.error('Error saving config data:', error);
+        }
+    };
+
+    const renderEditableField = (label: string, field: string) => (
+        <div className="mb-4 flex items-center">
+            <div className="font-bold mr-2">{label}:</div>
+            {editableFields[field] ? (
+                <input
+                    type="text"
+                    value={configData[field]}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
+                    className="bg-gray-700 text-white rounded p-1 flex-grow"
+                />
+            ) : (
+                <div>{configData[field]}</div>
+            )}
+            <button onClick={() => toggleEdit(field)} className="ml-2">
+                ✏️
+            </button>
+        </div>
+    );
+
     return (
         <>
             {/* Client Information Section */}
             {configData && (
                 <div className="lg:max-w-2xl bg-gray-800 p-6 rounded-lg shadow-md text-white mb-4">
                     <div className="text-2xl font-bold mb-4">Client Information</div>
-                    <div className="flex">
-                        <div className="mr-28">
-                            <div className="font-bold">Client ID:</div>
-                            <div>{configData.client_id}</div>
-                        </div>
-                        <div>
-                            <div className="font-bold">Client Secret:</div>
-                            <div>{configData.client_secret}</div>
-                        </div>
-                    </div>
+                    {renderEditableField('Client ID', 'client_id')}
+                    {renderEditableField('Client Secret', 'client_secret')}
+                    {renderEditableField('Redirect URI', 'redirect_uri')}
                 </div>
             )}
 
             {/* Other Categories */}
             {configData && (
                 <div className="bg-gray-800 p-6 rounded-lg shadow-md text-white mb-4">
-                    <div className="text-2xl font-bold mb-4">Other Categories</div>
-                    <div className="font-bold mb-2">Backend URL:</div>
-                    <div>{configData.backend_url}</div>
-                    <div className="font-bold mb-2">Frontend URL:</div>
-                    <div>{configData.frontend_url}</div>
-                    <div className="font-bold mb-2">Bot Token:</div>
-                    <div>{configData.bot_token}</div>
-                    <div className="font-bold mb-2">OAuth URL:</div>
-                    <div><a href={configData.oauth_url} className="text-blue-500 underline">Link</a></div>
-                    <div className="font-bold mb-2">Redirect URI:</div>
-                    <div>{configData.redirect_uri}</div>
-                    <div className="font-bold mb-2">Guild ID:</div>
-                    <div>{configData.guild_id}</div>
+                    <div className="text-2xl font-bold mb-4">Bot</div>
+                    {renderEditableField('Bot Token', 'bot_token')}
+                    {renderEditableField('Guild ID', 'guild_id')}
+                    <div className="mb-4">
+                        <div className="font-bold">OAuth URL:</div>
+                        <a href={configData.oauth_url} className="text-blue-500 underline">{configData.oauth_url}</a>
+                    </div>
                 </div>
             )}
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+                <button
+                    onClick={handleSave}
+                    className="bg-blue-500 text-white p-2 rounded"
+                >
+                    Save
+                </button>
+            </div>
 
             <style jsx>{`
                 .blurred-text {
