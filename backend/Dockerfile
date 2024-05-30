@@ -4,8 +4,6 @@ WORKDIR /membrs
 
 COPY . .
 
-RUN ls
-
 RUN cargo build --release --bin server
 
 RUN rm -rf target/release/build \

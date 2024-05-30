@@ -68,55 +68,47 @@ pub(crate) async fn get_config(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Result<Json<ApplicationDataResult>, Response<String>> {
-    if !authorize(&headers, &state.pool).await {
-        let response = Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .body("Invalid username or password".to_string())
-            .unwrap();
-        Err(response)
-    } else {
-        let data = match ApplicationData::get_application_data(&state.pool).await {
-            Ok(data) => data,
-            Err(err) => {
-                let response = Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(format!("Failed to get data: {}", err))
-                    .unwrap();
-                return Err(response);
-            }
-        };
+    authorize(&headers, &state.pool).await?;
 
-        Ok(Json(data.into()))
-    }
+    let data = match ApplicationData::get_application_data(&state.pool).await {
+        Ok(data) => data,
+        Err(err) => {
+            let response = Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(format!("Failed to get data: {}", err))
+                .unwrap();
+            return Err(response);
+        }
+    };
+
+    Ok(Json(data.into()))
 }
 
 pub(crate) async fn authenticate_user(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Result<String, Response<String>> {
-    // Check if the username and password are correct
-    if authorize(&headers, &state.pool).await {
-        Ok("Success".to_string())
-    } else {
-        let response = Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .body("Invalid username or password".to_string())
-            .unwrap();
-        Err(response)
-    }
+    authorize(&headers, &state.pool).await?;
+
+    Ok("Success".to_string())
 }
+
+pub(crate) async fn update_superuser(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<String, Response<String>> {
+    authorize(&headers, &state.pool).await?;
+
+    Ok("Success".to_string())
+}
+
+
 
 pub(crate) async fn get_users(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Result<Json<Vec<GetUsersResponse>>, Response<String>> {
-    if !authorize(&headers, &state.pool).await {
-        let response = Response::builder()
-            .status(StatusCode::UNAUTHORIZED)
-            .body("Invalid username or password".to_string())
-            .unwrap();
-        return Err(response);
-    }
+    authorize(&headers, &state.pool).await?;
 
     match users::UserData::get_users(&state.pool, 10).await {
         Ok(data) => {
@@ -153,10 +145,8 @@ pub(crate) async fn set_config(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     Json(payload): Json<SetApplicationData>,
-) -> Result<Json<String>, Json<String>> {
-    if !authorize(&headers, &state.pool).await {
-        return Err(Json("Invalid username or password".to_string()));
-    }
+) -> Result<Json<String>, Response<String>> {
+    authorize(&headers, &state.pool).await?;
 
     let oauth_url = DiscordOAuthUrlBuilder::new(&payload.client_id, &payload.redirect_uri)
         .guilds_join()
@@ -184,15 +174,35 @@ pub(crate) async fn set_config(
     Ok(Json("Updated Config".to_string()))
 }
 
-/// rerun true if user was authenticated successfully
-/// false otherwise
-async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
+/// Authorizes a request using Basic authentication
+///
+/// This function checks the `Authorization` header for valid credentials,
+/// decodes the Base64 username and password, and verifies them against a superuser
+/// fetched from the database. Returns `Ok(())` on successful authentication,
+/// otherwise returns an error response
+///
+/// # Arguments
+///
+/// * `headers` - The request headers containing the `Authorization` header
+/// * `pool` - A connection pool to the PostgreSQL database
+///
+/// # Errors
+///
+/// Returns an error response if the `Authorization` header is missing,
+/// incorrectly formatted, or if the credentials do not match the superuser
+async fn authorize(headers: &HeaderMap, pool: &PgPool) -> Result<(), Response<String>> {
     // Check if Authorization header exists
     let authorization_header = match headers.get("Authorization") {
         Some(header) => header,
         None => {
             error!("attempted login with missing authorization header");
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body("missing authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
@@ -201,7 +211,13 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
         Some(auth_str) if auth_str.starts_with("Basic ") => auth_str,
         _ => {
             error!("attempted login with wrongly formated authorization header");
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("wrongly formated authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
@@ -211,7 +227,13 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
         Ok(auth_decoded) => auth_decoded,
         Err(e) => {
             error!("Error decoding Base64: {}", e);
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("couldn't parse authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
@@ -220,7 +242,13 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
         Ok(auth_string) => auth_string,
         Err(e) => {
             error!("Error converting bytes to string: {}", e);
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("couldn't parse authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
@@ -230,7 +258,13 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
         (Some(username), Some(password)) => (username, password),
         _ => {
             error!("attempted login with wrongly formated authorization header");
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("wrongly formated authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
@@ -239,30 +273,52 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> bool {
         Ok(Some(superuser)) => superuser,
         Ok(None) => {
             error!("Superuser not found in the database");
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body("user not found".to_string())
+                .unwrap();
+
+            return Err(response);
         }
         Err(e) => {
             error!("Error fetching superuser from the database: {}", e);
-            return false;
+
+            let response = Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body("couldn't fetch superuser".to_string())
+                .unwrap();
+
+            return Err(response);
         }
     };
 
     // Check if the username and password match the superuser
-    let authenticated = match (superuser.username.as_deref(), superuser.password.as_deref()) {
+    match (superuser.username.as_deref(), superuser.password.as_deref()) {
         (Some(super_username), Some(super_password)) => {
             if super_username == username && super_password == password {
                 info!("login successfully as: {}", username);
-                true
+                Ok(())
             } else {
                 error!("Username or password mismatch");
-                false
+
+                let response = Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .body("Username or password mismatch".to_string())
+                    .unwrap();
+
+                Err(response)
             }
         }
         _ => {
             error!("Attempted login with wrongly formatted authorization header");
-            false
-        }
-    };
 
-    authenticated
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("wrongly formated authorization header".to_string())
+                .unwrap();
+
+            Err(response)
+        }
+    }
 }
