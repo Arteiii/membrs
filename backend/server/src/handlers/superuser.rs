@@ -99,9 +99,23 @@ pub(crate) async fn update_superuser(
 ) -> Result<String, Response<String>> {
     authorize(&headers, &state.pool).await?;
 
-    Ok("Success".to_string())
-}
+    let (username, password) = match extract_username_password(&headers, "AuthorizationNew").await {
+        Ok((username, password)) => (username, password),
+        Err(response) => return Err(response),
+    };
 
+    match SuperUser::upsert(&state.pool, Some(username), Some(password)).await {
+        Ok(_) => Ok("Success".to_string()),
+        Err(response) => {
+            error!("update superuser in db failed: {}", response);
+            
+            Err(Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body("failed to update username/password".to_string())
+            .unwrap())
+        }
+    }
+}
 
 
 pub(crate) async fn get_users(
@@ -191,81 +205,10 @@ pub(crate) async fn set_config(
 /// Returns an error response if the `Authorization` header is missing,
 /// incorrectly formatted, or if the credentials do not match the superuser
 async fn authorize(headers: &HeaderMap, pool: &PgPool) -> Result<(), Response<String>> {
-    // Check if Authorization header exists
-    let authorization_header = match headers.get("Authorization") {
-        Some(header) => header,
-        None => {
-            error!("attempted login with missing authorization header");
-
-            let response = Response::builder()
-                .status(StatusCode::UNAUTHORIZED)
-                .body("missing authorization header".to_string())
-                .unwrap();
-
-            return Err(response);
-        }
-    };
-
-    // Check if the Authorization header starts with "Basic "
-    let auth_str = match authorization_header.to_str().ok() {
-        Some(auth_str) if auth_str.starts_with("Basic ") => auth_str,
-        _ => {
-            error!("attempted login with wrongly formated authorization header");
-
-            let response = Response::builder()
-                .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body("wrongly formated authorization header".to_string())
-                .unwrap();
-
-            return Err(response);
-        }
-    };
-
-    // Decode the Base64 encoded username:password string
-    let auth_decoded = match general_purpose::STANDARD.decode(auth_str.trim_start_matches("Basic "))
-    {
-        Ok(auth_decoded) => auth_decoded,
-        Err(e) => {
-            error!("Error decoding Base64: {}", e);
-
-            let response = Response::builder()
-                .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body("couldn't parse authorization header".to_string())
-                .unwrap();
-
-            return Err(response);
-        }
-    };
-
-    // Convert the decoded bytes to a string
-    let auth_string = match String::from_utf8(auth_decoded) {
-        Ok(auth_string) => auth_string,
-        Err(e) => {
-            error!("Error converting bytes to string: {}", e);
-
-            let response = Response::builder()
-                .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body("couldn't parse authorization header".to_string())
-                .unwrap();
-
-            return Err(response);
-        }
-    };
-
-    // Split the string into username and password
-    let mut parts = auth_string.splitn(2, ':');
-    let (username, password) = match (parts.next(), parts.next()) {
-        (Some(username), Some(password)) => (username, password),
-        _ => {
-            error!("attempted login with wrongly formated authorization header");
-
-            let response = Response::builder()
-                .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body("wrongly formated authorization header".to_string())
-                .unwrap();
-
-            return Err(response);
-        }
+    // Extract username and password using the new function
+    let (username, password) = match extract_username_password(headers, "Authorization").await {
+        Ok((username, password)) => (username, password),
+        Err(response) => return Err(response),
     };
 
     // Fetch the superuser from the database
@@ -315,10 +258,91 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> Result<(), Response<St
 
             let response = Response::builder()
                 .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body("wrongly formated authorization header".to_string())
+                .body("wrongly formatted authorization header".to_string())
                 .unwrap();
 
             Err(response)
         }
     }
+}
+
+
+async fn extract_username_password(headers: &HeaderMap, header_name: &str) -> Result<(String, String), Response<String>> {
+    // Check if Authorization header exists
+    let authorization_header = match headers.get(header_name) {
+        Some(header) => header,
+        None => {
+            error!("attempted login with missing authorization header");
+
+            let response = Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body("missing authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
+        }
+    };
+
+    // Check if the Authorization header starts with "Basic "
+    let auth_str = match authorization_header.to_str().ok() {
+        Some(auth_str) if auth_str.starts_with("Basic ") => auth_str,
+        _ => {
+            error!("attempted login with wrongly formatted authorization header");
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("wrongly formatted authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
+        }
+    };
+
+    // Decode the Base64 encoded username:password string
+    let auth_decoded = match general_purpose::STANDARD.decode(auth_str.trim_start_matches("Basic ")) {
+        Ok(auth_decoded) => auth_decoded,
+        Err(e) => {
+            error!("Error decoding Base64: {}", e);
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("couldn't parse authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
+        }
+    };
+
+    // Convert the decoded bytes to a string
+    let auth_string = match String::from_utf8(auth_decoded) {
+        Ok(auth_string) => auth_string,
+        Err(e) => {
+            error!("Error converting bytes to string: {}", e);
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("couldn't parse authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
+        }
+    };
+
+    // Split the string into username and password
+    let mut parts = auth_string.splitn(2, ':');
+    let (username, password) = match (parts.next(), parts.next()) {
+        (Some(username), Some(password)) => (username.to_string(), password.to_string()),
+        _ => {
+            error!("attempted login with wrongly formatted authorization header");
+
+            let response = Response::builder()
+                .status(StatusCode::UNPROCESSABLE_ENTITY)
+                .body("wrongly formatted authorization header".to_string())
+                .unwrap();
+
+            return Err(response);
+        }
+    };
+
+    Ok((username, password))
 }

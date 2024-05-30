@@ -12,8 +12,8 @@ const Page: React.FC = () => {
                 <p className="text-gray-700 mb-4">
                     Welcome! Here you can find the source code for this project on GitHub. If you encounter any issues or have suggestions for improvements, please feel free to create an issue on GitHub.
                 </p>
-                <a href="https://github.com/your-username/your-repo" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Go to GitHub</a>
-                <p className="text-gray-500 text-sm mt-2">For more information, check out our <a href="/documentation" className="text-blue-500 hover:underline">documentation</a>.</p>
+                <a href="https://github.com/arteiii/membrs" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Go to GitHub</a>
+                <p className="text-gray-500 text-sm mt-2">For more information, check out our <a href="https://github.com/Arteiii/membrs/wiki" className="text-blue-500 hover:underline">documentation</a>.</p>
             </div>
         </div>
     );

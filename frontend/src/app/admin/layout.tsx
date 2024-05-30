@@ -30,7 +30,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({children}) => {
         const password = localStorage.getItem('password');
 
         if (!username || !password) {
-            setIsAuthenticated(false);
+            setIsAuthenticated(true);
         }
     }, []);
 
@@ -44,10 +44,12 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({children}) => {
             <div className="min-h-screen bg-gray-900 text-gray-300">
                 <div className="hidden space-y-6 p-10 pb-16 md:block">
                     <Link href="/admin/" className="space-y-0.5">
-                            <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-                            <p className="text-gray-400">
-                                Manage your authenticated membrs
-                            </p>
+                        <h1 className="text-4xl font-bold mb-5 bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 text-transparent bg-clip-text md:-bottom-32">
+                            Superuser
+                        </h1>
+                        <p className="text-gray-400">
+                            Manage your authenticated membrs
+                        </p>
                     </Link>
                     <Separator className="my-6 border-gray-700"/>
                     <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
