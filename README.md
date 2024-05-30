@@ -1,24 +1,23 @@
 # membrs
 
-selfhosted oauth discord bot for managing discord members
+Self-hosted OAuth Discord bot for managing Discord members.
 
-you can find the detailed readmes in the project folders
+You can find the detailed readme's in the project folders.
 
 ![](./preview/msedge_YJFwwVlzxc.gif)
 
 ## Install
 
-to set up the latest release, you can use the executable from the GitHub Release page
-
+To set up the latest release, you can use the executable from the GitHub release page.
 
 > [!TIP]
-> the installer currently only supports linux and also there not every distro
->
-> pull request or ideas how to automate the installation on widows are welcome as well as support for more distros so
-> feel free to create a issue to check that
+> The installer currently only supports Linux, and not every distro.
+> 
+> Pull requests or ideas on how to automate the installation on widows are welcome, 
+> as is support for more distros, so feel free to create an issue to check.
 
 
-to download and directly run it, you can use:
+to download and run it directly:
 
 ```shell
 curl -O -L https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
@@ -26,14 +25,14 @@ curl -O -L https://github.com/arteiii/membrs/releases/latest/download/membrs && 
 
 ## Manual Install
 
-the app is tested and developed using podman
-it should work seamlessly with docker too, tho I prefer podman but that's up to you
+The application was tested and developed using Podman.
+It should also work seamlessly with Docker, although I prefer Podman, but that's up to you.
 
-before you start the application make sure to set the .env variables from the [`example.env`](./example.env) file and
-rename it to the .env instead of example.env
+before you start the application, make sure you set the .env variables from the file [`example.env`](./example.env) and
+rename them to .env instead of example.env
 
-after that you can build and start the containers
-this will create a new volume for the database
+Then you can build and run the containers.
+This will create a new volume for the database.
 
 ```shell
 docker compose up -d # -d for detached
@@ -48,20 +47,13 @@ you can visit the admin dashboard at /admin
 To complete the configuration, you need to insert additional data. 
 For detailed instructions on setting up Discord applications, refer to the [GitHub Wiki](https://github.com/Arteiii/membrs/wiki/Discord-Application).
 
-For more detailed information about the backend, frontend, and installer, refer to the README files in their respective
+For more detailed information about the backend and frontend, refer to the README files in their respective
 directories.
 These files contain more specific details which may be unnecessary for common usage but can be useful for development
 and advanced configuration.
 
 - [Backend](backend/README.md)
 - [Frontend](frontend/README.md)
-- [Installer](installer/README.md)
-
-## Description
-
-As I am incredibly annoyed by projects that are hard to set up,
-I will do my best to make it as easy as possible.
-Currently, planned is an installer (membrs bin) that installs all dependencies and prerequisites for you.
 
 
 > [!NOTE]
