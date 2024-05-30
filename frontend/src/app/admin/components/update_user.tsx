@@ -21,8 +21,12 @@ const ChangeUserData: React.FC<ChangeUserDataProps> = ({ onChangeSuccess }) => {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Basic ${btoa(`${username}:${password}`)}`,
-                    'AuthorizationNew': `Basic ${btoa(`${newUsername}:${newPassword}`)}` // New header
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({
+                    new_username: newUsername,
+                    new_password: newPassword,
+                }),
             });
 
             if (response.ok) {

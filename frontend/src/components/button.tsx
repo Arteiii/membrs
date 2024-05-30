@@ -2,20 +2,31 @@
 
 import React, {useEffect, useState} from 'react';
 
-// @ts-ignore
-// @ts-ignore
-const Button = ({
-                    loadingClass = '',
-                    errorClass = '',
-                    doneClass = '',
-                    disabledClass = '',
-                    loading = false,
-                    error = false,
-                    done = false,
-                    disabled = false,
-                    children,
-                    onClick,
-                }) => {
+interface ButtonProps {
+    loadingClass?: string;
+    errorClass?: string;
+    doneClass?: string;
+    disabledClass?: string;
+    loading?: boolean;
+    error?: boolean;
+    done?: boolean;
+    disabled?: boolean;
+    children: React.ReactNode; // Adjusted prop type
+    onClick: () => void;
+}
+
+const Button: React.FC<ButtonProps> = ({
+                                           loadingClass = '',
+                                           errorClass = '',
+                                           doneClass = '',
+                                           disabledClass = '',
+                                           loading = false,
+                                           error = false,
+                                           done = false,
+                                           disabled = false,
+                                           children,
+                                           onClick,
+                                       }) => {
     const [isClient, setIsClient] = useState(false);
     const [iconClass, setIconClass] = useState('absolute right-2 top-1/2 transform -translate-y-1/2');
 

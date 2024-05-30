@@ -1,18 +1,10 @@
-"use-client"
-
 import Image from "next/image";
-import {useState} from 'react';
 import RedirectPopup from "@/components/redirect-popup";
+import Link from "next/link";
 
 
 export default function Navigation() {
 
-    const [popupVisible, setPopupVisible] = useState(false); // State to track popup visibility
-
-    // Function to toggle popup visibility
-    const togglePopup = () => {
-        setPopupVisible(prevState => !prevState);
-    };
     return (
         < nav
             className="fixed flex justify-between py-6 w-full lg:px-48 md:px-12 px-4 content-center bg-secondary z-10">
@@ -38,10 +30,13 @@ export default function Navigation() {
             </ul>
             <div className="font-montserrat hidden md:block">
                 {/*<button className="mr-6">Login</button>*/}
-                <button className="py-2 px-4 text-white bg-black rounded-3xl" onClick={togglePopup}>
-                    Login
-                </button>
-                {popupVisible && <RedirectPopup redirectUrl={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`}/>}
+                <Link href={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`} passHref legacyBehavior>
+                    <a target="_blank">
+                        <button className="py-2 px-4 text-white bg-black rounded-3xl">
+                            Login
+                        </button>
+                    </a>
+                </Link>
             </div>
             <div id="showMenu" className="md:hidden">
                 <Image src='./assets/logos/Menu.svg' width={20} height={16} alt="Menu icon"/>

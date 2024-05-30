@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react';
 import { FaCopy } from 'react-icons/fa'; // Import the copy icon
 

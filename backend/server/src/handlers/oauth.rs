@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::{debug, error};
 
-use membrs_lib::bot::AddGuildMember;
+use membrs_lib::bot::{AddGuildMember, Bot};
 use membrs_lib::model::user;
 use membrs_lib::oauth;
 use membrs_lib::oauth::{ClientData, OAuthToken};
@@ -35,19 +35,26 @@ pub(crate) async fn oauth_callback(
         Err(err) => {
             error!("db error during get first application: {}", err);
             return Err(Redirect::temporary(
-                "/login/complete?status=failed&error=unknown_error",
+                "/complete?status=failed&error=unknown_error",
             ));
         }
     };
 
-    let bot = match &state.bot {
-        None => {
-            error!("Bot is not set up correctly. Please visit the admin dashboard.");
-            return Err(Redirect::temporary(
-                "/login/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator.",
-            ));
-        }
+    let bot = match state.bot.clone() {
         Some(bot) => bot,
+        None => match ApplicationData::get_bot_token(&state.pool).await {
+            Ok(Some(token)) => Bot::new(&token),
+            Ok(None) => {
+                error!("Bot is not set up correctly. Please visit the admin dashboard.");
+                return Err(Redirect::temporary("/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator."));
+            }
+            Err(_) => {
+                error!("Failed to retrieve bot token from the database.");
+                return Err(Redirect::temporary(
+                    "/complete?status=failed&error=failed_to_retrieve_bot_token_from_database",
+                ));
+            }
+        },
     };
 
     let cdata = ClientData {
@@ -75,7 +82,7 @@ pub(crate) async fn oauth_callback(
                     // Handle authentication error
                     error!("OAuth error: {:?}", err);
                     return Err(Redirect::temporary(&format!(
-                        "{}/login/complete?status=failed&error={:?}",
+                        "{}complete?status=failed&error={:?}",
                         data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         err
                     )));
@@ -113,7 +120,7 @@ pub(crate) async fn oauth_callback(
                 Ok(res) => {
                     debug!("Add Guild Member Response: {:?}", res);
                     Ok(Redirect::temporary(&format!(
-                        "{}/login/complete?status=complete&username={}",
+                        "{}complete?status=complete&username={}",
                         data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
@@ -123,7 +130,7 @@ pub(crate) async fn oauth_callback(
                     let msg = format!("Failed to add guild member: {:?}", err);
                     error!(msg);
                     Err(Redirect::temporary(&format!(
-                        "{}/login/complete?status=failed&error={}",
+                        "{}complete?status=failed&error={}",
                         data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
@@ -134,7 +141,7 @@ pub(crate) async fn oauth_callback(
             // Handle OAuthClient::new error
             error!("OAuth error: {:?}", err);
             Err(Redirect::temporary(&format!(
-                "{}/login/complete?status=failed&error={:?}",
+                "{}complete?status=failed&error={:?}",
                 data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
                 err
             )))
@@ -149,14 +156,14 @@ pub(crate) async fn oauth_url(State(state): State<Arc<AppState>>) -> Result<Redi
             None => {
                 eprintln!("OAuth URL is NULL in the database");
                 Err(Redirect::temporary(
-                    "/login/complete?status=failed&error=OAuth URL is Null",
+                    "/complete?status=failed&error=OAuth URL is Null",
                 ))
             }
         },
         Err(err) => {
             eprintln!("Failed to fetch OAuth URL: {:?}", err);
             Err(Redirect::temporary(
-                "/login/complete?status=failed&error=Failed to fetch OAuth URL",
+                "/complete?status=failed&error=Failed to fetch OAuth URL",
             ))
         }
     }

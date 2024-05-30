@@ -1,5 +1,3 @@
-"use client"
-
 import Navigation from "./sections/navigation";
 import Footer from "./sections/footer";
 import Faq from "./sections/faq";

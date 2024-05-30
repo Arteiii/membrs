@@ -1,20 +1,8 @@
-"use-client"
-
-import RedirectPopup from "@/components/redirect-popup";
 import {GitHubLogoIcon} from "@radix-ui/react-icons";
-import {useState} from 'react';
 import Link from 'next/link';
 
 
 export default function Hero() {
-    const [popupVisible, setPopupVisible] = useState(false); // State to track popup visibility
-
-    // Function to toggle popup visibility
-    const togglePopup = () => {
-        setPopupVisible(prevState => !prevState);
-    };
-
-
     return (
         <section id="Hero"
                  className="pt-24 md:mt-0 md:h-screen flex flex-col justify-center text-center md:text-left md:flex-row md:justify-between md:items-center lg:px-48 md:px-12 px-4 bg-secondary">
@@ -42,7 +30,7 @@ export default function Hero() {
                     </Link>
                     <Link href={`${process.env.NEXT_PUBLIC_URL}/api/oauth/url`} passHref legacyBehavior>
                         <a target="_blank">
-                            <button onClick={togglePopup}
+                            <button
                                     className="px-6 py-4 border-2 border-black border-solid rounded-lg">
                                 Login
                             </button>

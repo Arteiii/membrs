@@ -34,8 +34,9 @@ rename them to .env instead of example.env
 Then you can build and run the containers.
 This will create a new volume for the database.
 
+
 ```shell
-docker compose up -d # -d for detached
+podman compose build && podman compose up
 ```
 
 you can visit the admin dashboard at /admin

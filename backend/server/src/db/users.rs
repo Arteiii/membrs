@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use sqlx::{Error, FromRow, PgPool};
 
 #[allow(dead_code)]
-#[derive(FromRow, Debug)]
+#[derive(FromRow, Debug, Clone)]
 pub struct UserData {
     pub id: i32,
     pub discord_id: Option<String>,

@@ -99,7 +99,7 @@ const Page: React.FC = () => {
                 setLoading(false);
                 setError(false);
                 setDone(false);
-            }, 5000); // Adjust the delay as needed
+            }, 5000);
         }
     };
 
@@ -126,10 +126,10 @@ const Page: React.FC = () => {
         <>
             <div className="flex justify-between items-center mb-4"> {/* Added flex container */}
                 {/* Button to open ChangeUserData */}
-                <button onClick={() => setShowChangeUserData(true)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <Button onClick={() => setShowChangeUserData(true)}>
                     Change User Data
-                </button>
+                </Button>
+
                 {/* ChangeUserData component */}
                 {showChangeUserData && <ChangeUserData onChangeSuccess={() => setShowChangeUserData(false)}/>}
             </div>

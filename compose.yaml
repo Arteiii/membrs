@@ -26,6 +26,7 @@ services:
       args:
         DOCKER_BUILDKIT: 1
     container_name: membrs-backend
+    restart: unless-stopped
     expose:
       - "8000"
     depends_on:
@@ -39,7 +40,7 @@ services:
       POSTGRES_HOST: db
       BACKEND_URL: ${URL}/api
       FRONTEND_URL: ${URL}/
-      RUST_LOG: INFO
+      RUST_LOG: DEBUG
     networks:
       - backend
 

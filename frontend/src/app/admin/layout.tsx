@@ -5,7 +5,6 @@ import {Separator} from '@/components/ui/separator';
 import {SidebarNav} from './components/sidebar-nav';
 import AdminLogin from './components/login';
 import Link from 'next/link';
-import {GitHubLogoIcon} from "@radix-ui/react-icons";
 
 const sidebarNavItems = [
     {
@@ -30,7 +29,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({children}) => {
         const password = localStorage.getItem('password');
 
         if (!username || !password) {
-            setIsAuthenticated(true);
+            setIsAuthenticated(false);
         }
     }, []);
 
