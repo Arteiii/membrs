@@ -37,3 +37,6 @@ base64 = "0.22.1"
 human-panic = "2.0.0"
 
 membrs_lib = { path = "../membrs_lib" }
+anyhow = "1.0.86"
+
+reqwest = "0.12.4"

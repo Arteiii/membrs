@@ -9,7 +9,7 @@ use tracing::{debug, error, info};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
-
+use reqwest::Client;
 use membrs_lib::bot::Bot;
 
 use crate::db::application_data::ApplicationData;
@@ -86,6 +86,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
     let args = EnvArgs::new();
 
+
+    // Ping google.com to ensure network connectivity
+    let client = Client::new();
+    match client.get("http://www.google.com").send().await {
+        Ok(response) if response.status().is_success() => {
+            println!("Successfully connected to google.com. Network connectivity is established.");
+        }
+        _ => {
+            eprintln!("Failed to connect to google.com. No network connectivity.");
+            panic!("Failed to establish network connectivity.");
+        }
+    }
+
     // todo: add config for addr
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &args.port))
         .await
@@ -109,13 +122,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .expect("failed to store superuser");
 
-    let bot = args.token.as_ref().map(|token| Bot::new(token));
+
+    let bot = if let Some(token) = args.token.as_ref() {
+        Some(Bot::new(token))
+    } else {
+        match ApplicationData::get_bot_token(&pool).await {
+            Ok(Some(token)) => Some(Bot::new(&token)),
+            Ok(None) => None,
+            Err(_) => None,
+        }
+    };
 
     let shared_state = Arc::new(AppState { pool, bot });
 
-    axum::serve(listener, routes::configure_routes(shared_state))
-        .await
-        .expect("Failed to run Axum server");
+    axum::serve(
+        listener,
+        routes::configure_routes(shared_state, args.frontend_url),
+    )
+    .await
+    .expect("Failed to run Axum server");
 
     Ok(())
 }
