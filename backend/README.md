@@ -1,20 +1,11 @@
 # membrs (Backend)
 
-requires postgresql !!!!
+requires postgresql
 
 ## ENV vars
 
 Make sure to set the following environment variables:
 
-- POSTGRES_USER: The username for the PostgreSQL database
-- POSTGRES_PASSWORD: The password for the PostgreSQL database
-- POSTGRES_DB: The name of the PostgreSQL database
-- POSTGRES_PORT: The port on which PostgreSQL is running (default is 5432)
-- POSTGRES_HOST: The hostname of the PostgreSQL server
-- BACKEND_URL: The URL of the backend service
-- FRONTEND_URL: The URL of the frontend service
-- RUST_LOG: The logging level for Rust (e.g., INFO, DEBUG)
-- 
 To get log output while the container is running, use the following commands:
 
 ```shell
