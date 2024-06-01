@@ -2,9 +2,10 @@ use std::io::{Error, ErrorKind};
 
 use reqwest::Client;
 use serde_json::json;
-use tracing::error;
+use tracing::{error, trace};
 
 use crate::api;
+use crate::model::bot;
 pub use crate::model::guild::{AddGuildMember, AddGuildMemberResponse};
 
 #[derive(Debug, Clone)]
@@ -74,5 +75,43 @@ impl Bot {
                 format!("Failed to add guild member: {}", response.status()),
             )),
         }
+    }
+
+    /// returns a list of the guilds the bot is on
+    pub async fn get_guilds(&self) -> Result<Vec<bot::Guild>, Error> {
+        let url = self.api.append_path("/users/@me/guilds");
+
+        let response = match self
+            .client
+            .get(&url)
+            .header("Authorization", format!("Bot {}", self.token))
+            .send()
+            .await
+        {
+            Ok(res) => res,
+            Err(err) => {
+                error!("Failed to send request: {:?}", err);
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("Failed to send request: {:?}", err),
+                ));
+            }
+        };
+
+        trace!("get bot guilds response: {:?}", response);
+
+        // Deserialize the response into Vec<Guild>
+        let guilds: Vec<bot::Guild> = match response.json::<Vec<bot::Guild>>().await {
+            Ok(guilds) => guilds,
+            Err(err) => {
+                error!("Failed to deserialize response: {:?}", err);
+                return Err(Error::new(
+                    ErrorKind::Other,
+                    format!("Failed to deserialize response: {:?}", err),
+                ));
+            }
+        };
+
+        Ok(guilds)
     }
 }

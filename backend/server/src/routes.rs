@@ -27,6 +27,10 @@ pub fn configure_routes(state: Arc<AppState>, frontend_url: String) -> Router {
             "/superuser/members/pull",
             post(handlers::superuser::pull_members),
         )
+        .route(
+            "/superuser/bot/guilds",
+            get(handlers::superuser::get_bot_guilds),
+        )
         .with_state(state)
         .layer(TimeoutLayer::new(Duration::from_secs(90))) // abort request after 90sec
         .layer(

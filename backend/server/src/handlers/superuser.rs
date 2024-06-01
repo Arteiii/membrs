@@ -8,11 +8,13 @@ use base64::engine::general_purpose;
 use base64::Engine;
 use chrono::{DateTime, Utc};
 use membrs_lib::bot::{AddGuildMember, Bot};
+use membrs_lib::model;
 use membrs_lib::oauth::OAuthToken;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use sqlx::PgPool;
 use tokio::task;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 
 use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
 
@@ -166,6 +168,61 @@ pub(crate) async fn get_users(
     }
 }
 
+pub(crate) async fn get_bot_guilds(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<Json<Vec<model::bot::Guild>>, Response<String>> {
+    // Authorize the request
+    match authorize(&headers, &state.pool).await {
+        Ok(()) => (),
+        Err(err) => {
+            error!("Authorization failed: {:?}", err);
+            return Err(Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body(json!({ "error": "Authorization failed" }).to_string())
+                .unwrap());
+        }
+    }
+
+    // Get the bot instance
+    let bot = match state.bot.clone() {
+        Some(bot) => bot,
+        None => match ApplicationData::get_bot_token(&state.pool).await {
+            Ok(Some(token)) => Bot::new(&token),
+            Ok(None) => {
+                error!("Bot is not set up correctly. Please visit the admin dashboard.");
+                return Err(Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(json!({ "error": "Bot is not set up correctly" }).to_string())
+                    .unwrap());
+            }
+            Err(err) => {
+                error!("Failed to retrieve bot token from the database: {:?}", err);
+                return Err(Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(
+                        json!({ "error": "Failed to retrieve bot token from the database" })
+                            .to_string(),
+                    )
+                    .unwrap());
+            }
+        },
+    };
+
+    match bot.get_guilds().await {
+        Ok(guilds) => {
+            trace!("Retrieved guilds: {:?}", guilds);
+            Ok(Json(guilds))
+        }
+        Err(err) => {
+            error!("Failed to get guilds: {:?}", err);
+            Err(Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(json!({ "error": "Failed to get guilds" }).to_string())
+                .unwrap())
+        }
+    }
+}
 pub(crate) async fn set_config(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
