@@ -42,34 +42,42 @@ pub(crate) async fn oauth_callback(
 
     let bot = match state.bot.clone() {
         Some(bot) => bot,
-        None => match ApplicationData::get_bot_token(&state.pool).await {
-            Ok(Some(token)) => Bot::new(&token),
-            Ok(None) => {
-                error!("Bot is not set up correctly. Please visit the admin dashboard.");
-                return Err(Redirect::temporary("/complete?status=failed&error=bot_setup_not_completed. Please contact the page administrator."));
+        None => {
+            match ApplicationData::get_bot_token(&state.pool).await {
+                Ok(Some(token)) => Bot::new(&token),
+                Ok(None) => {
+                    error!("Bot is not set up correctly. Please visit the admin dashboard.");
+                    return Err(Redirect::temporary("/complete?status=failed&error=bot_setup_not_completed"));
+                }
+                Err(_) => {
+                    error!("Failed to retrieve bot token from the database.");
+                    return Err(Redirect::temporary("/complete?status=failed&error=failed_to_retrieve_bot_token_from_database"));
+                }
             }
-            Err(_) => {
-                error!("Failed to retrieve bot token from the database.");
-                return Err(Redirect::temporary(
-                    "/complete?status=failed&error=failed_to_retrieve_bot_token_from_database",
-                ));
-            }
-        },
+        }
     };
 
     let cdata = ClientData {
-        client_id: data.client_id.unwrap(),
-        client_secret: data.client_secret.unwrap(),
-        redirect_uri: data.redirect_uri.unwrap(),
+        client_id: data.client_id.ok_or_else(|| {
+            error!("Client ID not found");
+            Redirect::temporary("/complete?status=failed&error=client_id_not_found")
+        })?,
+        client_secret: data.client_secret.ok_or_else(|| {
+            error!("Client secret not found");
+            Redirect::temporary("/complete?status=failed&client_secret_not_found")
+        })?,
+        redirect_uri: data.redirect_uri.ok_or_else(|| {
+            error!("Redirect URI not found");
+            Redirect::temporary("/complete?status=failed&redirect_uri_not_found")
+        })?,
     };
 
     let authorization_code = params
         .get("code")
         .ok_or_else(|| {
             error!("Authorization code not found in query parameters");
-            json!({"error": "Authorization code not found"})
-        })
-        .unwrap();
+            Redirect::temporary("/complete?status=failed&authorization_code_not_found")
+        })?;
 
     let client = oauth::OAuthClient::new(&cdata, authorization_code);
 
@@ -108,9 +116,16 @@ pub(crate) async fn oauth_callback(
                 error!("Failed to insert user data: {:?}", err);
             }
 
+            let guild_id = if let Some(id) = &data.guild_id {
+                id
+            } else {
+                error!("Guild ID not found");
+                return Err(Redirect::temporary("/complete?status=failed&missing_guild_id"));
+            };
+
             match bot
                 .add_guild_member(AddGuildMember::new(
-                    &data.guild_id.unwrap_or_else(|| "Unknown".to_string()),
+                    guild_id,
                     &user_data.id,
                     &client.get_token().await,
                 ))
