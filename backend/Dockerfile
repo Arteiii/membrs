@@ -4,7 +4,7 @@ WORKDIR /membrs
 
 COPY . .
 
-RUN cargo build --release --bin server
+RUN cargo build --bin server --release
 
 RUN rm -rf target/release/build \
     && rm -rf target/release/deps \
@@ -12,10 +12,10 @@ RUN rm -rf target/release/build \
     && rm -rf target/release/.fingerprint
 
 
-FROM ubuntu:latest as runner
+FROM debian:latest as runner
 
 RUN apt-get update \
-    && apt-get install -y openssl
+    && apt-get install -y openssl ca-certificates
 
 COPY --from=builder /membrs/target/release/server /usr/local/bin/server
 
