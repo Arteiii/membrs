@@ -22,7 +22,7 @@ impl UserData {
         let create_table_query = r#"
             CREATE TABLE IF NOT EXISTS user_data (
                 id SERIAL PRIMARY KEY,
-                discord_id VARCHAR(255),
+                discord_id VARCHAR(255) UNIQUE,
                 username VARCHAR(255),
                 avatar VARCHAR(255),
                 email VARCHAR(255),
