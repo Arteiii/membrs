@@ -19,7 +19,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({ items }) => {
                         item.customRender()
                     ) : (
                         <a className="block">
-                            <button className="py-2 px-4 rounded-md bg-gray-800 hover:bg-gray-700 focus:bg-gray-700">
+                            <button className="bg-gray-800 hover:bg-gray-700 focus:bg-gray-700">
                                 {item.title}
                             </button>
                         </a>

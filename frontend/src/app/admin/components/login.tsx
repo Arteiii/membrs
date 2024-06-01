@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 interface AdminLoginProps {
     onLoginSuccess: () => void;
 }
 
-const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
+const AdminLogin: React.FC<AdminLoginProps> = ({onLoginSuccess}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string>('');
@@ -45,7 +45,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     };
 
     return (
-        <div className="fixed inset-0 flex justify-center items-center backdrop-blur-md">
+        <>
             <div className="absolute inset-0 bg-gray-900 bg-opacity-80"></div>
             <div className="z-10 bg-gray-800 bg-opacity-90 p-8 rounded-lg max-w-md">
                 <div className="text-center">
@@ -115,7 +115,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

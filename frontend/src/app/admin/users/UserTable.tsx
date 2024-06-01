@@ -24,7 +24,7 @@ const UserTable: FC<UserTableProps> = ({ users }) => {
     };
 
     return (
-        <div className="overflow-x-auto w-full md:w-auto md:max-w-full md:mx-auto">
+        <div className="overflow-x-auto md:w-auto md:max-w-full md:mx-auto">
             <table className="w-full md:w-max border-collapse rounded-lg overflow-hidden bg-gray-800 shadow-md">
                 <thead>
                 <tr>

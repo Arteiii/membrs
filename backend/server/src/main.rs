@@ -4,10 +4,9 @@ use std::sync::Arc;
 use dotenv::dotenv;
 use human_panic::{setup_panic, Metadata};
 use membrs_lib::bot::Bot;
-use reqwest::{Client, Response};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
@@ -111,7 +110,7 @@ fn init_tracing() {
             .homepage("https://github.com/Arteiii/membrs")
             .support("- Open a support request at https://github.com/Arteiii/membrs/issues/new")
     );
-    
+
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(EnvFilter::from_default_env())

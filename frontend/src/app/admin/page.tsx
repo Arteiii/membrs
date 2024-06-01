@@ -3,7 +3,7 @@ import { FaGithub } from 'react-icons/fa';
 
 const Page: React.FC = () => {
     return (
-        <div className="flex justify-center lg:max-w-2xl">
+        <div className="flex justify-center p-4 mt-5 lg:max-w-2xl">
             <div className="bg-gray-300 p-8 rounded-lg shadow-md inline-block">
                 <div className="flex items-center mb-4">
                     <FaGithub className="text-4xl mr-2 text-gray-600" />

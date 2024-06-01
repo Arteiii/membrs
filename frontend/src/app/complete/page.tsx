@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import Head from 'next/head';
 import { useState, Suspense } from 'react';
@@ -15,24 +15,45 @@ function CompletePageContent() {
         setErrorDetailsVisible(prevState => !prevState);
     };
 
-    const errorText = searchParams.get('error') || ''; // provide a default value
+    const status = searchParams.get('status');
+    const username = searchParams.get('username') || '';
+    const errorText = searchParams.get('error') || '';
+    const profilePicture = searchParams.get('profile_picture') || '';
+
+    const imageLoader = ({ src, width }: { src: string; width: number }) => {
+        return `${src}?size=${width}`;
+    };
 
     return (
         <div className="min-h-screen flex justify-center items-center bg-gray-100">
             <Head>
-                <title>{searchParams.get('status') === 'complete' ? 'Login Complete' : 'Login Failed'}</title>
+                <title>{status === 'complete' ? 'Login Complete' : 'Login Failed'}</title>
             </Head>
             <div className="max-w-md p-8 bg-white rounded-lg shadow-lg">
-                {searchParams.get('status') === 'complete' ? (
+                {status === 'complete' ? (
                     <div>
                         <h1 className="text-3xl font-semibold mb-4">Login Complete!</h1>
-                        <p className="text-lg mb-4">Welcome, {searchParams.get('username')}!</p>
+                        <div className="flex items-center mb-4">
+                            {profilePicture && (
+                                <div className="rounded-full overflow-hidden mr-4">
+                                    <Image
+                                        loader={imageLoader}
+                                        src={profilePicture}
+                                        alt={`Avatar`}
+                                        width={48}
+                                        height={48}
+                                        loading="lazy"
+                                    />
+                                </div>
+                            )}
+                            <p className="text-lg">Welcome, {username}!</p>
+                        </div>
                     </div>
                 ) : (
                     <div>
                         <h1 className="text-3xl font-semibold mb-4">Login Failed!</h1>
                         <p className="text-lg mb-4">Sorry, there was an error processing your login request.</p>
-                        <div className="flex justify-between items-center" style={{ cursor: 'pointer' }} onClick={toggleErrorDetails}>
+                        <div className="flex justify-between items-center cursor-pointer" onClick={toggleErrorDetails}>
                             <div className="font-montserrat font-medium mr-auto">
                                 Error Details
                             </div>
@@ -42,11 +63,11 @@ function CompletePageContent() {
                                 className={`transform transition-transform ${errorDetailsVisible ? 'rotate-90' : ''}`}
                                 width={40}
                                 height={40}
-                                style={{ cursor: 'pointer', filter: 'invert(100%)' }}
+                                style={{ filter: 'invert(100%)' }}
                             />
                         </div>
                         {errorDetailsVisible && (
-                            <div className="flex justify-between items-center" style={{ cursor: 'pointer' }}>
+                            <div className="flex justify-between items-center cursor-pointer">
                                 <p className="text-s mb-4 text-color" style={{ color: '#333', opacity: 0.6 }}>
                                     {errorText}
                                 </p>

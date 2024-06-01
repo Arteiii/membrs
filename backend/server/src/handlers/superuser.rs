@@ -18,7 +18,6 @@ use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
 
 use crate::db::application_data::ApplicationData;
 use crate::db::superuser::SuperUser;
-use crate::db::users;
 use crate::db::users::UserData;
 use crate::AppState;
 
@@ -136,7 +135,7 @@ pub(crate) async fn get_users(
 ) -> Result<Json<Vec<GetUsersResponse>>, Response<String>> {
     authorize(&headers, &state.pool).await?;
 
-    match users::UserData::get_users(&state.pool, 10).await {
+    match UserData::get_users(&state.pool, 10).await {
         Ok(data) => {
             let mut users_response = Vec::new();
 
@@ -175,6 +174,9 @@ pub(crate) async fn set_config(
     authorize(&headers, &state.pool).await?;
 
     let oauth_url = DiscordOAuthUrlBuilder::new(&payload.client_id, &payload.redirect_uri)
+        .email() // allow reading email at users/@me
+        .identify() // allow reading email at users/@me
+        .guilds() // allow reading guilds
         .guilds_join()
         .build();
 
@@ -216,13 +218,11 @@ pub(crate) async fn set_config(
 /// Returns an error response if the `Authorization` header is missing,
 /// incorrectly formatted, or if the credentials do not match the superuser
 async fn authorize(headers: &HeaderMap, pool: &PgPool) -> Result<(), Response<String>> {
-    // Extract username and password using the new function
     let (username, password) = match extract_username_password(headers, "Authorization").await {
         Ok((username, password)) => (username, password),
         Err(response) => return Err(response),
     };
 
-    // Fetch the superuser from the database
     let superuser = match SuperUser::fetch(pool).await {
         Ok(Some(superuser)) => superuser,
         Ok(None) => {
@@ -249,7 +249,6 @@ async fn authorize(headers: &HeaderMap, pool: &PgPool) -> Result<(), Response<St
 
     debug!("SuperUser data: {:?}", superuser);
 
-    // Check if the username and password match the superuser
     match (superuser.username.as_deref(), superuser.password.as_deref()) {
         (Some(super_username), Some(super_password)) => {
             if super_username == username && super_password == password {
@@ -384,6 +383,7 @@ pub(crate) async fn pull_members(
     Ok("Success!! Please Wait...".to_string())
 }
 
+// untested
 async fn pull_all(state: Arc<AppState>, guild_id: String) {
     info!("Starting to pull all users for guild {}", guild_id);
 
@@ -407,23 +407,19 @@ async fn pull_all(state: Arc<AppState>, guild_id: String) {
             info!("Successfully fetched {} users", users.len());
 
             for user in users {
-                let guild_id_clone = guild_id.clone(); // Cloning guild_id
+                let guild_id_clone = guild_id.clone();
                 let user_clone = user.clone();
                 let bot = bot.clone();
 
-                // Spawn a task to process each user
                 task::spawn(async move {
                     match pull_one(bot, user_clone, &guild_id_clone).await {
                         Ok(_) => info!(
                             "Successfully processed user {} for guild {}",
-                            user.id,
-                            guild_id_clone // Using guild_id_clone here
+                            user.id, guild_id_clone
                         ),
                         Err(e) => error!(
                             "Error processing user {} for guild {}: {:?}",
-                            user.id,
-                            guild_id_clone,
-                            e // Using guild_id_clone here
+                            user.id, guild_id_clone, e
                         ),
                     }
                 });

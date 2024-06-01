@@ -4,8 +4,7 @@ use std::sync::Arc;
 use axum::extract::{Query, State};
 use axum::response::Redirect;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 use membrs_lib::bot::{AddGuildMember, Bot};
 use membrs_lib::model::user;
@@ -42,19 +41,24 @@ pub(crate) async fn oauth_callback(
 
     let bot = match state.bot.clone() {
         Some(bot) => bot,
-        None => {
-            match ApplicationData::get_bot_token(&state.pool).await {
-                Ok(Some(token)) => Bot::new(&token),
-                Ok(None) => {
-                    error!("Bot is not set up correctly. Please visit the admin dashboard.");
-                    return Err(Redirect::temporary("/complete?status=failed&error=bot_setup_not_completed"));
-                }
-                Err(_) => {
-                    error!("Failed to retrieve bot token from the database.");
-                    return Err(Redirect::temporary("/complete?status=failed&error=failed_to_retrieve_bot_token_from_database"));
-                }
+        None => match ApplicationData::get_bot_token(&state.pool).await {
+            Ok(Some(token)) => {
+                trace!("successfully create bot instance");
+                Bot::new(&token)
             }
-        }
+            Ok(None) => {
+                error!("Bot is not set up correctly. Please visit the admin dashboard.");
+                return Err(Redirect::temporary(
+                    "/complete?status=failed&error=bot_setup_not_completed",
+                ));
+            }
+            Err(_) => {
+                error!("Failed to retrieve bot token from the database.");
+                return Err(Redirect::temporary(
+                    "/complete?status=failed&error=failed_to_retrieve_bot_token_from_database",
+                ));
+            }
+        },
     };
 
     let cdata = ClientData {
@@ -72,22 +76,24 @@ pub(crate) async fn oauth_callback(
         })?,
     };
 
-    let authorization_code = params
-        .get("code")
-        .ok_or_else(|| {
-            error!("Authorization code not found in query parameters");
-            Redirect::temporary("/complete?status=failed&authorization_code_not_found")
-        })?;
+    let authorization_code = params.get("code").ok_or_else(|| {
+        error!("Authorization code not found in query parameters");
+        Redirect::temporary("/complete?status=failed&authorization_code_not_found")
+    })?;
 
-    let client = oauth::OAuthClient::new(&cdata, authorization_code);
+    trace!("get oauth client instance");
 
-    match client.await {
+    let client = oauth::OAuthClient::new(&cdata, authorization_code).await;
+
+    match client {
         Ok(client) => {
-            // Assuming client.get_user_data() returns UserData struct
+            trace!("oauth client instance created successfully");
+
+            trace!("get client.get_user_data");
             let user_data = match client.get_user_data().await {
                 Ok(user_data) => user_data,
                 Err(err) => {
-                    // Handle authentication error
+                    // handle authentication error
                     error!("OAuth error: {:?}", err);
                     return Err(Redirect::temporary(&format!(
                         "/complete?status=failed&error={:?}",
@@ -95,14 +101,17 @@ pub(crate) async fn oauth_callback(
                     )));
                 }
             };
+
             debug!("user data: {:?}", user_data);
 
             let token = client.get_token().await;
+            let username = user_data.get_username();
+            let avatar_url = user_data.get_avatar_url();
 
             let ud = UserData {
                 id: 0,
                 discord_id: Some(user_data.id.clone()),
-                username: user_data.username.clone(),
+                username: user_data.username,
                 avatar: user_data.avatar,
                 email: user_data.email,
                 banner: user_data.banner,
@@ -120,7 +129,9 @@ pub(crate) async fn oauth_callback(
                 id
             } else {
                 error!("Guild ID not found");
-                return Err(Redirect::temporary("/complete?status=failed&missing_guild_id"));
+                return Err(Redirect::temporary(
+                    "/complete?status=failed&missing_guild_id",
+                ));
             };
 
             match bot
@@ -134,24 +145,21 @@ pub(crate) async fn oauth_callback(
                 Ok(res) => {
                     debug!("Add Guild Member Response: {:?}", res);
                     Ok(Redirect::temporary(&format!(
-                        "/complete?status=complete&username={}",
-                        user_data.username.unwrap_or_else(|| "Unknown".to_string())
+                        "/complete?status=complete&username={}&profile_picture={}",
+                        username, avatar_url
                     )))
                 }
                 Err(err) => {
-                    // Handle error
                     let msg = format!("Failed to add guild member: {:?}", err);
                     error!(msg);
-                    Err(Redirect::temporary(&format!(
-                        "/complete?status=failed&error={}",
-                        user_data.username.unwrap_or_else(|| "Unknown".to_string())
-                    )))
+                    Err(Redirect::temporary(
+                        "/complete?status=failed&error=failed_add_to_server",
+                    ))
                 }
             }
         }
         Err(err) => {
-            // Handle OAuthClient::new error
-            error!("OAuth error: {:?}", err);
+            error!("failed to create oauth instance: {:?}", err);
             Err(Redirect::temporary(&format!(
                 "/complete?status=failed&error={:?}",
                 err

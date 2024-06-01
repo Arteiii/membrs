@@ -45,9 +45,8 @@ impl UserData {
             ) VALUES (
                 $1, $2, $3, $4, $5, $6, $7, $8, $9
             )
-            ON CONFLICT (id)
+            ON CONFLICT (discord_id)
             DO UPDATE SET
-                discord_id = EXCLUDED.discord_id,
                 username = EXCLUDED.username,
                 avatar = EXCLUDED.avatar,
                 email = EXCLUDED.email,

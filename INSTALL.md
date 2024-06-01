@@ -147,3 +147,11 @@ the Admin dashboard is by default available at `/admin`
 > To complete the configuration, you need to insert additional data.
 > For detailed instructions on setting up Discord applications, refer to
 > the [GitHub Wiki](https://github.com/Arteiii/membrs/wiki/Discord-Application).
+
+
+## Common Issues
+
+### 
+
+
+

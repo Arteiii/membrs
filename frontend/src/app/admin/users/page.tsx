@@ -70,7 +70,7 @@ export default function Home() {
                 setError(false);
                 setDone(true);
             } else {
-                setLoading(false);
+                setLoading(false);y
                 setError(true);
 
                 console.error('Failed to pull users');
@@ -96,20 +96,20 @@ export default function Home() {
     };
 
     return (
-        <div className="p-4">
+        <div className="p-4 mt-5">
             <div className="flex items-center mb-8">
-                <div>
+                <div className="mr-2">
                     <label htmlFor="guildid" className="sr-only">
                         GuildID
                     </label>
                     <input
                         type="text"
-                        autoComplete="Guild ID"
+                        autoComplete="GuildID"
                         required
                         value={guild_id}
                         onChange={handleInputChange}
-                        className="appearance-none bg-slate-800 mr-2 relative block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                        placeholder="Username"
+                        className="appearance-none bg-slate-800 rounded block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 text-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                        placeholder="Guild ID"
                     />
                 </div>
                 <Button

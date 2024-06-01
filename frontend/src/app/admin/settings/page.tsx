@@ -123,7 +123,7 @@ const Page: React.FC = () => {
     );
 
     return (
-        <>
+        <div className="p-4 mt-5">
             <div className="flex justify-between items-center mb-4"> {/* Added flex container */}
                 {/* Button to open ChangeUserData */}
                 <Button onClick={() => setShowChangeUserData(true)}>
@@ -168,7 +168,7 @@ const Page: React.FC = () => {
                 </Button>
             </div>
 
-        </>
+        </div>
     );
 }
 export default Page;

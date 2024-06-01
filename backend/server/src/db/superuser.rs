@@ -1,5 +1,5 @@
 use sqlx::{FromRow, PgPool, Result};
-use tracing::info;
+use tracing::trace;
 
 #[allow(dead_code)]
 #[derive(FromRow, Debug)]
@@ -10,7 +10,7 @@ pub struct SuperUser {
 }
 
 impl SuperUser {
-    // Method to create the superuser table
+    /// create superuser table
     pub async fn create_table(pool: &PgPool) -> Result<()> {
         sqlx::query(
             r#"
@@ -26,7 +26,7 @@ impl SuperUser {
         Ok(())
     }
 
-    // Method to insert or update the superuser
+    /// insert or update superuser
     pub async fn upsert(
         pool: &PgPool,
         password: Option<String>,
@@ -49,7 +49,7 @@ impl SuperUser {
         Ok(())
     }
 
-    // Method to fetch the superuser
+    /// fetch superuser
     pub async fn fetch(pool: &PgPool) -> Result<Option<SuperUser>> {
         let superuser = sqlx::query_as::<_, SuperUser>(
             r#"
@@ -65,7 +65,7 @@ impl SuperUser {
     pub async fn check_and_create_superuser(pool: &PgPool) -> Result<()> {
         // Check if superuser entry already exists
         if let Some(superuser) = SuperUser::fetch(pool).await? {
-            info!(
+            trace!(
                 "Superuser already exists with username: {:?}",
                 superuser.username
             );
@@ -77,9 +77,10 @@ impl SuperUser {
 
         SuperUser::upsert(pool, Some(password.clone()), Some(username.clone())).await?;
 
-        info!(
+        trace!(
             "Created superuser with username: {:?} and password: {:?}",
-            username, password
+            username,
+            password
         );
 
         Ok(())
