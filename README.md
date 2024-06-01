@@ -6,22 +6,6 @@ You can find the detailed readme's in the project folders.
 
 ![](./preview/msedge_YJFwwVlzxc.gif)
 
-## Install
-
-To set up the latest release, you can use the executable from the GitHub release page.
-
-> [!TIP]
-> The installer currently only supports Linux, and not every distro.
-> 
-> Pull requests or ideas on how to automate the installation on widows are welcome, 
-> as is support for more distros, so feel free to create an issue to check.
-
-
-to download and run it directly:
-
-```shell
-curl -O -L https://github.com/arteiii/membrs/releases/latest/download/membrs && chmod +x membrs && sudo ./membrs
-```
 
 ## Manual Install
 
