@@ -21,7 +21,6 @@ pub struct OAuthToken {
 
 impl From<OAuthTokenResponse> for OAuthToken {
     fn from(response: OAuthTokenResponse) -> Self {
-        // Perform the conversion here
         OAuthToken {
             access_token: response.access_token,
             token_type: response.token_type,

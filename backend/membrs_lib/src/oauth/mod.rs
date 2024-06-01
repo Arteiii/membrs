@@ -41,7 +41,7 @@
 //! ```
 
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
 
 use crate::api;
 use crate::model::guild::Guild;
@@ -110,6 +110,8 @@ impl OAuthClient {
             &self.token.access_token,
         )
         .await?;
+
+        trace!("get_user_data send_request response: {:?}", response);
 
         parse_response(response).await
     }

@@ -15,6 +15,24 @@ pub struct UserData {
     pub public_flags: Option<u64>,
 }
 
+impl UserData {
+    pub fn get_avatar_url(&self) -> String {
+        if let Some(avatar) = &self.avatar {
+            format!("https://cdn.discordapp.com/avatars/{}/{}", self.id, avatar)
+        } else {
+            String::from("https://discord.com/assets/1cbd08c76f8af6dddce02c5138971129.png")
+        }
+    }
+
+    pub fn get_username(&self) -> String {
+        if let Some(username) = &self.username {
+            username.clone()
+        } else {
+            String::from("Unknown")
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub enum PremiumTypes {
     None = 0,

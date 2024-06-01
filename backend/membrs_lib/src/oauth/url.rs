@@ -14,7 +14,7 @@ impl DiscordOAuthUrlBuilder {
     /// # Arguments
     ///
     /// * `client_id` - The client ID provided by Discord for your application.
-    ///                You can obtain this by creating a new application on the
+    ///                You can get this by creating a new application on the
     ///                Discord Developer Portal: https://discord.com/developers/applications
     /// * `redirect_uri` - The URI where Discord will redirect users after authorization.
     ///                   This should match the URI you specified when setting up your
@@ -35,21 +35,30 @@ impl DiscordOAuthUrlBuilder {
         }
     }
 
+    /// allows [/users/@me](https://discord.com/developers/docs/resources/user#get-current-user)
+    /// without email
     pub fn identify(mut self) -> Self {
         self.add_scope("identify");
         self
     }
 
+    /// allows [/users/@me/connections](https://discord.com/developers/docs/resources/user#get-current-user-connections)
+    /// to return linked third-party accounts
     pub fn connections(mut self) -> Self {
         self.add_scope("connections");
         self
     }
 
+    /// allows
+    /// (/users/@me/guilds/{guild.id}/member)[https://discord.com/developers/docs/resources/user#get-current-user-guild-member]
+    /// to return a user's member information in a guild
     pub fn guilds_members_read(mut self) -> Self {
         self.add_scope("guilds.members.read");
         self
     }
 
+    /// for local rpc server access, this allows you to receive notifications pushed out to the user -
+    /// requires Discord approval
     pub fn rpc_notifications_read(mut self) -> Self {
         self.add_scope("rpc.notifications.read");
         self
@@ -65,26 +74,31 @@ impl DiscordOAuthUrlBuilder {
         self
     }
 
+    /// this generates a webhook returned in the oauth token response for authorization code grants
     pub fn webhook_incoming(mut self) -> Self {
         self.add_scope("webhook.incoming");
         self
     }
 
+    /// allows your app to read build data for a user's applications
     pub fn applications_builds_read(mut self) -> Self {
         self.add_scope("applications.builds.read");
         self
     }
 
+    /// allows your app to read entitlements for a user's applications
     pub fn applications_entitlements(mut self) -> Self {
         self.add_scope("applications.entitlements");
         self
     }
 
+    /// allows your app to know a user's friends and implicit relationships - requires Discord approval
     pub fn relationships_read(mut self) -> Self {
         self.add_scope("relationships.read");
         self
     }
 
+    /// allows your app to see information about the user's DMs and group DMs - requires Discord approval
     pub fn dm_channels_read(mut self) -> Self {
         self.add_scope("dm_channels.read");
         self
@@ -95,6 +109,10 @@ impl DiscordOAuthUrlBuilder {
         self
     }
 
+    /// allows your app to update its
+    /// (commands)[https://discord.com/developers/docs/interactions/application-commands]
+    /// using a Bearer token -
+    /// (client credentials grant)[https://discord.com/developers/docs/topics/oauth2#client-credentials-grant] only
     pub fn applications_commands_permissions_update(mut self) -> Self {
         self.add_scope("applications.commands.permissions.update");
         self
@@ -105,16 +123,23 @@ impl DiscordOAuthUrlBuilder {
         self
     }
 
+    /// allows
+    /// (/users/@me/guilds)[https://discord.com/developers/docs/resources/user#get-current-user-guilds]
+    /// to return basic information about all of a user's guilds
     pub fn guilds(mut self) -> Self {
         self.add_scope("guilds");
         self
     }
 
+    /// allows your app to (join users to a group dm)[https://discord.com/developers/docs/resources/channel#group-dm-add-recipient]
     pub fn gdm_join(mut self) -> Self {
         self.add_scope("gdm.join");
         self
     }
 
+    /// for local rpc server access,
+    /// this allows you to read a user's voice settings and listen for voice events -
+    /// requires Discord approval
     pub fn rpc_voice_read(mut self) -> Self {
         self.add_scope("rpc.voice.read");
         self
@@ -125,16 +150,23 @@ impl DiscordOAuthUrlBuilder {
         self
     }
 
+    /// for local rpc server access, this allows you to update a user's activity -
+    /// requires Discord approval
     pub fn rpc_activities_write(mut self) -> Self {
         self.add_scope("rpc.activities.write");
         self
     }
 
+    /// for local rpc server api access, this allows you to read messages from all client channels
+    /// (otherwise restricted to channels/guilds your app creates)
     pub fn messages_read(mut self) -> Self {
         self.add_scope("messages.read");
         self
     }
 
+    /// allows your app to add
+    /// (commands)[https://discord.com/developers/docs/interactions/application-commands] to a guild -
+    /// included by default with the `bot` scope
     pub fn applications_commands(mut self) -> Self {
         self.add_scope("applications.commands");
         self
