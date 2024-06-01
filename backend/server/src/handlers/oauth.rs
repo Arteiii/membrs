@@ -82,8 +82,7 @@ pub(crate) async fn oauth_callback(
                     // Handle authentication error
                     error!("OAuth error: {:?}", err);
                     return Err(Redirect::temporary(&format!(
-                        "{}complete?status=failed&error={:?}",
-                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
+                        "/complete?status=failed&error={:?}",
                         err
                     )));
                 }
@@ -120,8 +119,7 @@ pub(crate) async fn oauth_callback(
                 Ok(res) => {
                     debug!("Add Guild Member Response: {:?}", res);
                     Ok(Redirect::temporary(&format!(
-                        "{}complete?status=complete&username={}",
-                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
+                        "/complete?status=complete&username={}",
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
                 }
@@ -130,8 +128,7 @@ pub(crate) async fn oauth_callback(
                     let msg = format!("Failed to add guild member: {:?}", err);
                     error!(msg);
                     Err(Redirect::temporary(&format!(
-                        "{}complete?status=failed&error={}",
-                        data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
+                        "/complete?status=failed&error={}",
                         user_data.username.unwrap_or_else(|| "Unknown".to_string())
                     )))
                 }
@@ -141,8 +138,7 @@ pub(crate) async fn oauth_callback(
             // Handle OAuthClient::new error
             error!("OAuth error: {:?}", err);
             Err(Redirect::temporary(&format!(
-                "{}complete?status=failed&error={:?}",
-                data.frontend_url.unwrap_or_else(|| "Unknown".to_string()),
+                "/complete?status=failed&error={:?}",
                 err
             )))
         }

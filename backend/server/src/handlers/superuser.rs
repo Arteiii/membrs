@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
-use axum::response::{Response};
+use axum::response::Response;
 use axum::Json;
 use base64::engine::general_purpose;
 use base64::Engine;
@@ -24,8 +24,7 @@ use crate::AppState;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApplicationDataResult {
-    pub backend_url: String,
-    pub frontend_url: String,
+    pub url: String,
     pub bot_token: String,
     pub oauth_url: String,
     pub client_id: String,
@@ -56,8 +55,7 @@ pub struct GetUsersResponse {
 impl From<ApplicationData> for ApplicationDataResult {
     fn from(data: ApplicationData) -> Self {
         ApplicationDataResult {
-            backend_url: data.backend_url.unwrap_or_default(),
-            frontend_url: data.frontend_url.unwrap_or_default(),
+            url: data.url.unwrap_or_default(),
             bot_token: data.bot_token.unwrap_or_default(),
             oauth_url: data.oauth_url.unwrap_or_default(),
             client_id: data.client_id.unwrap_or_default(),
@@ -185,8 +183,7 @@ pub(crate) async fn set_config(
     let app_data = ApplicationData {
         id: 0,
         app_name: "application_data".to_string(),
-        backend_url: None,
-        frontend_url: None,
+        url: None,
         bot_token: Some(payload.bot_token),
         oauth_url: Some(oauth_url),
         client_id: Some(payload.client_id),

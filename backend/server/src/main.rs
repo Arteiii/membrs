@@ -3,14 +3,14 @@ use std::sync::Arc;
 
 use dotenv::dotenv;
 use human_panic::{setup_panic, Metadata};
+use membrs_lib::bot::Bot;
+use reqwest::Client;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tracing::{debug, error, info};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
-use reqwest::Client;
-use membrs_lib::bot::Bot;
 
 use crate::db::application_data::ApplicationData;
 use crate::db::superuser::SuperUser;
@@ -21,9 +21,9 @@ mod routes;
 
 mod handlers;
 
+#[derive(Debug)]
 struct EnvArgs {
-    backend_url: String,
-    frontend_url: String,
+    url: String,
     postgres: String,
     token: Option<String>,
     port: String,
@@ -46,34 +46,18 @@ impl EnvArgs {
         let token = match env::var("BOT_TOKEN") {
             Ok(token) => Some(token),
             Err(err) => {
-                error!("{:?}", err);
+                error!("BOT_TOKEN not found ({:?})", err);
                 None
             }
         };
 
         // Fetch PostgreSQL connection details
-        let postgres_user =
-            env::var("POSTGRES_USER").expect("POSTGRES_USER environment variable is not set");
-        let postgres_password = env::var("POSTGRES_PASSWORD")
-            .expect("POSTGRES_PASSWORD environment variable is not set");
-        let postgres_db =
-            env::var("POSTGRES_DB").expect("POSTGRES_DB environment variable is not set");
-        let postgres_host = env::var("POSTGRES_HOST").unwrap_or_else(|_| "localhost".to_string()); // default localhost if not set
-        let postgres_port = env::var("POSTGRES_PORT").unwrap_or_else(|_| "5432".to_string()); // default 5432 if not set
+        let postgres = env::var("POSTGRES").expect("POSTGRES environment variable is not set");
 
         let port = env::var("PORT").unwrap_or_else(|_| "8000".to_string()); // set default prot to 8000
 
-        // Construct the DATABASE_URL
-        let postgres = format!(
-            "postgres://{}:{}@{}:{}/{}",
-            postgres_user, postgres_password, postgres_host, postgres_port, postgres_db
-        );
-
         Self {
-            backend_url: env::var("BACKEND_URL")
-                .expect("BACKEND_URL environment variable is not set"),
-            frontend_url: env::var("FRONTEND_URL")
-                .expect("FRONTEND_URL environment variable is not set"),
+            url: env::var("URL").expect("URL environment variable is not set"),
             port,
             postgres,
             token,
@@ -85,19 +69,9 @@ impl EnvArgs {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
     let args = EnvArgs::new();
+    debug!("args: {:?}", args);
 
-
-    // Ping google.com to ensure network connectivity
-    let client = Client::new();
-    match client.get("http://www.google.com").send().await {
-        Ok(response) if response.status().is_success() => {
-            println!("Successfully connected to google.com. Network connectivity is established.");
-        }
-        _ => {
-            eprintln!("Failed to connect to google.com. No network connectivity.");
-            panic!("Failed to establish network connectivity.");
-        }
-    }
+    reqwest::get("https://google.com/").await.unwrap();
 
     // todo: add config for addr
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", &args.port))
@@ -105,23 +79,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
     debug!("connecting to: {:?}", &args.postgres);
 
-    let pool: PgPool = PgPoolOptions::new()
+    let pool: PgPool = match PgPoolOptions::new()
         .max_connections(5)
         .connect(&args.postgres)
         .await
-        .expect("failed to create pg connection");
+    {
+        Ok(pool) => pool,
+        Err(err) => {
+            error!("Failed to create pg connection: {:?}", err);
+            panic!("Failed to create pg connection");
+        }
+    };
 
     create_tables(&pool).await;
 
     // Store the bot token in the database
-    store_bot_and_urls(&pool, &args.token, &args.backend_url, &args.frontend_url)
+    store_bot_and_urls(&pool, &args.token)
         .await
         .expect("failed to store bot token");
 
     SuperUser::check_and_create_superuser(&pool)
         .await
         .expect("failed to store superuser");
-
 
     let bot = if let Some(token) = args.token.as_ref() {
         Some(Bot::new(token))
@@ -135,12 +114,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let shared_state = Arc::new(AppState { pool, bot });
 
-    axum::serve(
-        listener,
-        routes::configure_routes(shared_state, args.frontend_url),
-    )
-    .await
-    .expect("Failed to run Axum server");
+    axum::serve(listener, routes::configure_routes(shared_state, args.url))
+        .await
+        .expect("Failed to run Axum server");
 
     Ok(())
 }
@@ -151,7 +127,9 @@ fn init_tracing() {
         Metadata::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
             .authors("Arteii <ben.arteii@proton.me>")
             .homepage("https://github.com/Arteiii/membrs")
-            .support("- Open a support request at https://github.com/Arteiii/membrs/issues/new")
+            .support(
+                "- \n- Open a support request at https://github.com/Arteiii/membrs/issues/new"
+            )
     );
 
     tracing_subscriber::registry()
@@ -164,8 +142,6 @@ fn init_tracing() {
 pub async fn store_bot_and_urls(
     pool: &PgPool,
     bot_token: &Option<String>,
-    backend_url: &str,
-    frontend_url: &str,
 ) -> Result<(), sqlx::Error> {
     // Execute the upsert query
     ApplicationData::soft_insert_application_data(
@@ -173,8 +149,7 @@ pub async fn store_bot_and_urls(
         &ApplicationData {
             id: 0,
             app_name: "application_data".to_string(),
-            backend_url: Some(backend_url.to_string()),
-            frontend_url: Some(frontend_url.to_string()),
+            url: None,
             bot_token: bot_token.clone(),
             oauth_url: None,
             client_id: None,
@@ -190,8 +165,8 @@ pub async fn store_bot_and_urls(
     let result = ApplicationData::get_application_data(pool).await.unwrap();
 
     debug!(
-        "Updated values: bot_token: {:?}, backend_url: {:?}, frontend_url: {:?}",
-        result.bot_token, result.backend_url, result.frontend_url
+        "Updated values: bot_token: {:?}, url: {:?}",
+        result.bot_token, result.url,
     );
 
     Ok(())
