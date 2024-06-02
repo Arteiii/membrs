@@ -1,7 +1,8 @@
 'use client';
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '@/components/button';
 import ChangeUserData from '../components/update_user';
+import GuildSelect from '../components/guild-select';
 
 const Page: React.FC = () => {
     const [configData, setConfigData] = useState<any>({});
@@ -10,7 +11,7 @@ const Page: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [done, setDone] = useState(false);
-    const [showChangeUserData, setShowChangeUserData] = useState(false); // State to control showing ChangeUserData
+    const [showChangeUserData, setShowChangeUserData] = useState(false);
 
     useEffect(() => {
         const fetchConfigData = async () => {
@@ -93,13 +94,18 @@ const Page: React.FC = () => {
             setResultMessage('Error saving config data');
         } finally {
             setLoading(false);
-            // Reset button state after a delay
             setTimeout(() => {
                 setResultMessage('');
                 setLoading(false);
                 setError(false);
                 setDone(false);
             }, 5000);
+        }
+    };
+
+    const handleGuildSelect = (guild: { id: string; name: string; icon: string } | null) => {
+        if (guild) {
+            handleFieldChange('guild_id', guild.id);
         }
     };
 
@@ -124,17 +130,13 @@ const Page: React.FC = () => {
 
     return (
         <div className="p-4 mt-5">
-            <div className="flex justify-between items-center mb-4"> {/* Added flex container */}
-                {/* Button to open ChangeUserData */}
+            <div className="flex justify-between items-center mb-4">
                 <Button onClick={() => setShowChangeUserData(true)}>
                     Change User Data
                 </Button>
-
-                {/* ChangeUserData component */}
-                {showChangeUserData && <ChangeUserData onChangeSuccess={() => setShowChangeUserData(false)}/>}
+                {showChangeUserData && <ChangeUserData onChangeSuccess={() => setShowChangeUserData(false)} />}
             </div>
 
-            {/* Client Information Section */}
             <div className="lg:max-w-2xl bg-gray-800 p-6 rounded-lg shadow-md text-white mb-4">
                 <div className="text-2xl font-bold mb-4">Client Information</div>
                 {renderEditableField('Client ID', 'client_id')}
@@ -142,19 +144,24 @@ const Page: React.FC = () => {
                 {renderEditableField('Redirect URI', 'redirect_uri')}
             </div>
 
-            {/* Other Categories */}
             <div className="lg:max-w-2xl bg-gray-800 p-6 rounded-lg shadow-md text-white mb-4">
                 <div className="text-2xl font-bold mb-4">Bot</div>
                 {renderEditableField('Bot Token', 'bot_token')}
-                {renderEditableField('Guild ID', 'guild_id')}
+                <div className="mb-4 flex items-center">
+                    <div className="font-bold mr-2">Guild ID:</div>
+                    <div className="mr-4">
+                        <GuildSelect onGuildSelect={handleGuildSelect}/>
+                    </div>
+                </div>
                 <div className="mb-4">
                     <div className="font-bold">OAuth URL:</div>
-                    <a href={configData.oauth_url} className="text-blue-500 underline">{configData.oauth_url || ''}</a>
+                    <a href={configData.oauth_url} className="text-blue-500 underline">
+                        {configData.oauth_url || ''}
+                    </a>
                 </div>
-
-                {/* Save Button */}
             </div>
-            <div className="flex justify-start mb-4"> {/* Adjusted justify-start */}
+
+            <div className="flex justify-start mb-4">
                 <Button
                     loading={loading}
                     loadingClass="bg-yellow-600 scale-110 active:bg-yellow-600"
@@ -167,8 +174,8 @@ const Page: React.FC = () => {
                     {resultMessage ? resultMessage : 'Save'}
                 </Button>
             </div>
-
         </div>
     );
-}
+};
+
 export default Page;

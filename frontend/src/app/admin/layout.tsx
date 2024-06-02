@@ -34,7 +34,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({children}) => {
         const password = localStorage.getItem('password');
 
         if (!username || !password) {
-            setIsAuthenticated(true);
+            setIsAuthenticated(false);
         }
     }, []);
 
