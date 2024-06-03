@@ -6,7 +6,7 @@
 //! # Example
 //!
 //! ```rust
-//! use membrs_lib::oauth::{ClientData, OAuthClient};
+//! use discord_lib::oauth::{ClientData, OAuthClient};
 //!
 //!
 //! #[tokio::main]

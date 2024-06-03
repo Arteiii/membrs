@@ -14,15 +14,10 @@ docker logs membrs-backend  # Prints the log history
 docker logs -f membrs-backend  # Follow mode keeps streaming the output
 ```
 
-## Lib
-
-This project includes a basic helper library created to facilitate working with the Discord API.  
-Note that there are already more advanced libraries available for working with Discord in Rust. Instead, consider using:
-- [serenity](https://github.com/serenity-rs/serenity)  
-- [poise](https://github.com/serenity-rs/poise)
-
 ## License
 
-this project is licensed under the AGPLv3 license
+The backend server of this project is licensed under the AGPLv3 license.
 
-see more in the [License file](LICENSE-AGPL-3).
+See more in the [License file](../LICENSE-AGPL-3).
+
+The [discord_lib](./discord_lib/README.md) is licensed under the [MIT license](./discord_lib/LICENSE-MIT).

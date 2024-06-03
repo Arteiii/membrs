@@ -42,6 +42,8 @@ and advanced configuration
 
 ## License
 
+Please note that the [discord_lib](/backend/discord_lib/README.md) is licensed under the MIT license.
+
 this project is licensed under the AGPLv3 license
 
 see more in the [License file](LICENSE-AGPL-3).

@@ -7,16 +7,16 @@ use axum::Json;
 use base64::engine::general_purpose;
 use base64::Engine;
 use chrono::{DateTime, Utc};
-use membrs_lib::bot::{AddGuildMember, Bot};
-use membrs_lib::model;
-use membrs_lib::oauth::OAuthToken;
+use discord_lib::bot::{AddGuildMember, Bot};
+use discord_lib::model;
+use discord_lib::oauth::OAuthToken;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
 use tokio::task;
 use tracing::{debug, error, info, trace};
 
-use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
+use discord_lib::oauth::url::DiscordOAuthUrlBuilder;
 
 use crate::db::application_data::ApplicationData;
 use crate::db::superuser::SuperUser;

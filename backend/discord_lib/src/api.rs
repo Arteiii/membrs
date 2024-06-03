@@ -31,7 +31,7 @@ impl DiscordApiVersion {
     /// # Examples
     ///
     /// ```
-    /// use membrs_lib::api::DiscordApiVersion;
+    /// use discord_lib::api::DiscordApiVersion;
     ///
     /// let available_versions = DiscordApiVersion::available_versions();
     /// println!("Available Versions: {:?}", available_versions);
@@ -56,7 +56,7 @@ impl DiscordApiVersion {
     /// # Examples
     ///
     /// ```
-    /// use membrs_lib::api::DiscordApiVersion;
+    /// use discord_lib::api::DiscordApiVersion;
     ///
     /// let selected_version = DiscordApiVersion::select_version("10");
     /// println!("Selected Version: {:?}", selected_version);

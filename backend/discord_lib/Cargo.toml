@@ -1,11 +1,11 @@
 [package]
-name = "membrs_lib"
+name = "discord_lib"
 version = "0.1.0"
 publish = false
 edition = "2021"
 authors = ["Arteii <ben.arteii@proton.me>"]
-license = "AGPL-3"
-readme = "../README.md"
+license = "MIT"
+readme = "README.md"
 
 
 [dependencies]

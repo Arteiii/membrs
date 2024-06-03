@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "membrs_lib",
+    "discord_lib",
     "server",
 ]
 

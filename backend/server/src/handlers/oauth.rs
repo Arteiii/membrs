@@ -6,10 +6,10 @@ use axum::response::Redirect;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, trace};
 
-use membrs_lib::bot::{AddGuildMember, Bot};
-use membrs_lib::model::user;
-use membrs_lib::oauth;
-use membrs_lib::oauth::{ClientData, OAuthToken};
+use discord_lib::bot::{AddGuildMember, Bot};
+use discord_lib::model::user;
+use discord_lib::oauth;
+use discord_lib::oauth::{ClientData, OAuthToken};
 
 use crate::db::{application_data::ApplicationData, users::UserData};
 use crate::AppState;

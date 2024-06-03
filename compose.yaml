@@ -39,7 +39,7 @@ services:
       PORT: 8000
       POSTGRES: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/membrs
       URL: ${URL}
-      RUST_LOG: server=INFO,membrs_lib=ERROR,sqlx=ERROR # set log level for sqlx, membrs crate to error
+      RUST_LOG: server=INFO,discord_lib=ERROR,sqlx=ERROR # set log level for sqlx, membrs crate to error
     volumes:
       - crash_reports:/tmp
     networks:

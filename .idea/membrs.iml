@@ -5,8 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/frontend/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/backend/server/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/installer/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/backend/membrs_lib/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/https_test/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/backend/discord_lib/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/backend/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/installer/target" />

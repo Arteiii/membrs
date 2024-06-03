@@ -23,7 +23,7 @@ impl DiscordOAuthUrlBuilder {
     /// # Example
     ///
     /// ```
-    /// use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
+    /// use discord_lib::oauth::url::DiscordOAuthUrlBuilder;
     ///
     /// let builder = DiscordOAuthUrlBuilder::new("your_client_id", "https://example.com/oauth");
     /// ```
@@ -261,7 +261,7 @@ impl DiscordOAuthUrlBuilder {
     /// # Example
     ///
     /// ```
-    /// use membrs_lib::oauth::url::DiscordOAuthUrlBuilder;
+    /// use discord_lib::oauth::url::DiscordOAuthUrlBuilder;
     ///
     ///  let oauth_url = DiscordOAuthUrlBuilder::new("example_id", "example_redirect_url")
     ///     .identify()

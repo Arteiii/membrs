@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use dotenv::dotenv;
 use human_panic::{setup_panic, Metadata};
-use membrs_lib::bot::Bot;
+use discord_lib::bot::Bot;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 use tracing::{debug, error};
