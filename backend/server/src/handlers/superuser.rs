@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::Arc;
 
 use axum::extract::State;
@@ -9,7 +10,7 @@ use base64::Engine;
 use chrono::{DateTime, Utc};
 use discord_lib::bot::{AddGuildMember, Bot};
 use discord_lib::model;
-use discord_lib::oauth::OAuthToken;
+use discord_lib::oauth::{ClientData, OAuthClient, OAuthError, OAuthToken};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::PgPool;
@@ -223,6 +224,7 @@ pub(crate) async fn get_bot_guilds(
         }
     }
 }
+
 pub(crate) async fn set_config(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
@@ -440,9 +442,53 @@ pub(crate) async fn pull_members(
     Ok("Success!! Please Wait...".to_string())
 }
 
-// untested
 async fn pull_all(state: Arc<AppState>, guild_id: String) {
+    if let Err(err) = pull_all_internal(state.clone(), guild_id.clone()).await {
+        error!("Error pulling all users for guild {}: {}", guild_id, err);
+    }
+}
+
+/// untested!!!
+async fn pull_all_internal(state: Arc<AppState>, guild_id: String) -> Result<(), Box<dyn Error>> {
     info!("Starting to pull all users for guild {}", guild_id);
+
+    let client_data = {
+        let data = match ApplicationData::get_application_data(&state.pool).await {
+            Ok(data) => data,
+            Err(err) => {
+                let msg = format!("db error during get first application: {}", err);
+                error!("{}", msg);
+                return Err(msg.into());
+            }
+        };
+
+        ClientData {
+            client_id: match data.client_id {
+                Some(id) => id,
+                None => {
+                    let msg = "Client ID not found".to_string();
+                    error!("{}", msg);
+                    return Err(msg.into());
+                }
+            },
+            client_secret: match data.client_secret {
+                Some(secret) => secret,
+                None => {
+                    let msg = "Client secret not found".to_string();
+                    error!("{}", msg);
+                    return Err(msg.into());
+                }
+            },
+            redirect_uri: match data.redirect_uri {
+                Some(uri) => uri,
+                None => {
+                    let msg = "Redirect URI not found".to_string();
+                    error!("{}", msg);
+                    return Err(msg.into());
+                }
+            },
+        }
+    };
 
     let bot = match state.bot.clone() {
         Some(bot) => bot,
@@ -450,45 +496,69 @@ async fn pull_all(state: Arc<AppState>, guild_id: String) {
             Ok(Some(token)) => Bot::new(&token),
             Ok(None) => {
                 error!("Bot is not set up correctly. Please visit the admin dashboard.");
-                return;
+                return Err(
+                    "Bot is not set up correctly. Please visit the admin dashboard.".into(),
+                ); // Return an error
             }
             Err(_) => {
                 error!("Failed to retrieve bot token from the database.");
-                return;
+                return Err("Failed to retrieve bot token from the database.".into());
+                // Return an error
             }
         },
     };
 
-    match UserData::get_users(&state.pool, 1).await {
-        Ok(users) => {
-            info!("Successfully fetched {} users", users.len());
+    match UserData::count_users(&state.pool).await {
+        Ok(count) => {
+            info!("Total {} users found in the database", count);
 
-            for user in users {
-                let guild_id_clone = guild_id.clone();
-                let user_clone = user.clone();
-                let bot = bot.clone();
+            for i in 1..=count {
+                match UserData::get_users(&state.pool, i).await {
+                    Ok(users) => {
+                        info!("Successfully fetched {} users", users.len());
 
-                task::spawn(async move {
-                    match pull_one(bot, user_clone, &guild_id_clone).await {
-                        Ok(_) => info!(
-                            "Successfully processed user {} for guild {}",
-                            user.id, guild_id_clone
-                        ),
-                        Err(e) => error!(
-                            "Error processing user {} for guild {}: {:?}",
-                            user.id, guild_id_clone, e
-                        ),
+                        for user in users {
+                            let guild_id_clone = guild_id.clone();
+                            let user_clone = user.clone();
+                            let client_data = client_data.clone();
+                            let bot = bot.clone();
+
+                            task::spawn(async move {
+                                match pull_one(bot, user_clone, &guild_id_clone, &client_data).await
+                                {
+                                    Ok(_) => info!(
+                                        "Successfully processed user {} for guild {}",
+                                        user.id, guild_id_clone
+                                    ),
+                                    Err(e) => error!(
+                                        "Error processing user {} for guild {}: {:?}",
+                                        user.id, guild_id_clone, e
+                                    ),
+                                }
+                            });
+                        }
                     }
-                });
+                    Err(e) => {
+                        error!("Error fetching users: {:?}", e);
+                    }
+                }
             }
         }
         Err(e) => {
-            error!("Error fetching users: {:?}", e);
+            error!("Error counting users: {:?}", e);
+            return Err(e.into());
         }
     }
+
+    Ok(())
 }
 
-async fn pull_one(bot: Bot, user_data: UserData, guild_id: &str) -> anyhow::Result<()> {
+async fn pull_one(
+    bot: Bot,
+    user_data: UserData,
+    guild_id: &str,
+    client_data: &ClientData,
+) -> Result<(), OAuthError> {
     debug!("user data: {:?}", user_data);
     debug!("guild_id: {}", guild_id);
 
@@ -499,6 +569,8 @@ async fn pull_one(bot: Bot, user_data: UserData, guild_id: &str) -> anyhow::Resu
         refresh_token: Some(user_data.refresh_token.unwrap()),
     };
 
+    let mut oclient = OAuthClient::new(client_data, &token).await.unwrap();
+
     const MAX_RETRIES: u8 = 3;
     let mut attempts = 0;
 
@@ -507,7 +579,7 @@ async fn pull_one(bot: Bot, user_data: UserData, guild_id: &str) -> anyhow::Resu
             .add_guild_member(AddGuildMember::new(
                 guild_id,
                 &user_data.discord_id.clone().unwrap(),
-                &token,
+                &oclient.get_token().await?,
             ))
             .await
         {
@@ -524,11 +596,10 @@ async fn pull_one(bot: Bot, user_data: UserData, guild_id: &str) -> anyhow::Resu
                 error!(msg);
 
                 if attempts >= MAX_RETRIES {
-                    return Err(anyhow::anyhow!(
-                        "Failed after {} attempts: {:?}",
-                        MAX_RETRIES,
-                        err
-                    ));
+                    let msg = format!("Failed after {} attempts: {:?}", MAX_RETRIES, err);
+                    error!("{}", msg);
+
+                    return Err(OAuthError::RequestError(msg.to_string()));
                 } else {
                     tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
                 }

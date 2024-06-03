@@ -4,6 +4,14 @@ Self-hosted OAuth Discord bot for managing Discord members.
 
 You can find the detailed readme's in the project folders.
 
+> [!CAUTION]
+> Please be aware that this app is mostly untested,
+> and while the database is designed to remain stable and safe for general use,
+> some features might not work as expected.
+> Potential security vulnerabilities are possible
+> since the app was not originally built with security as a primary focus.  
+> I greatly appreciate any error reports and will review them promptly to improve the app's performance and security.
+
 ![](./preview/msedge_YJFwwVlzxc.gif)
 
 ## Quick Installation

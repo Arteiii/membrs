@@ -1,12 +1,9 @@
 use std::env;
 use std::sync::Arc;
 
-use dotenv::dotenv;
-use human_panic::{setup_panic, Metadata};
 use discord_lib::bot::Bot;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use tracing::{debug, error};
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{fmt, EnvFilter};
@@ -22,8 +19,11 @@ mod handlers;
 
 #[derive(Debug)]
 struct EnvArgs {
+    /// base url the server is available at for CORS (example.com)
     url: String,
+    /// the postgres url (postgres://postgres:s3curep4ss@db:5432/membrs)
     postgres: String,
+    /// port to host the server on (8000)
     port: String,
 }
 
@@ -38,7 +38,7 @@ pub struct AppState {
 impl EnvArgs {
     #[inline]
     fn new() -> Self {
-        dotenv().ok();
+        dotenv::dotenv().ok();
 
         Self {
             url: env::var("URL").expect("URL environment variable is not set"),
@@ -52,9 +52,10 @@ impl EnvArgs {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_tracing();
     let args = EnvArgs::new();
-    debug!("args: {:?}", args);
+    tracing::debug!("args: {:?}", args);
 
-    // test for https error
+    tracing::info!("testing connectivity");
+    // test for https error will panic on fail
     reqwest::get("https://google.com/").await.unwrap();
     reqwest::get("http://google.com/").await.unwrap();
     reqwest::get("https://discord.com/").await.unwrap();
@@ -64,7 +65,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap();
 
-    debug!("connecting to: {:?}", &args.postgres);
+    tracing::debug!("connecting to: {:?}", &args.postgres);
+
+    tracing::info!("connecting to postgres db...");
 
     let pool: PgPool = match PgPoolOptions::new()
         .max_connections(5)
@@ -73,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         Ok(pool) => pool,
         Err(err) => {
-            error!("Failed to create pg connection: {:?}", err);
+            tracing::error!("Failed to create pg connection: {:?}", err);
             panic!("Failed to create pg connection");
         }
     };
@@ -88,12 +91,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(Some(token)) => Some(Bot::new(&token)),
         Ok(None) => None,
         Err(err) => {
-            error!("get bot token error: {:?}", err);
+            tracing::error!("get bot token error: {:?}", err);
             None
         }
     };
 
     let shared_state = Arc::new(AppState { pool, bot });
+
+    tracing::info!("Server Running on: {}", &args.port);
 
     axum::serve(listener, routes::configure_routes(shared_state, args.url))
         .await
@@ -104,8 +109,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[inline(always)]
 fn init_tracing() {
-    setup_panic!(
-        Metadata::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+    human_panic::setup_panic!(
+        human_panic::Metadata::new(env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
             .authors("Arteii <ben.arteii@proton.me>")
             .homepage("https://github.com/Arteiii/membrs")
             .support("- Open a support request at https://github.com/Arteiii/membrs/issues/new")
@@ -121,30 +126,30 @@ fn init_tracing() {
 pub async fn create_tables(pool: &PgPool) {
     match ApplicationData::create_application_data_table(pool).await {
         Ok(_) => {
-            debug!("Application data table creation successful");
+            tracing::debug!("Application data table creation successful");
         }
         Err(err) => {
-            error!("Error creating application data table: {:?}", err);
+            tracing::error!("Error creating application data table: {:?}", err);
             panic!("Error creating application data table: {:?}", err);
         }
     }
 
     match SuperUser::create_table(pool).await {
         Ok(_) => {
-            debug!("SuperUser table creation successful");
+            tracing::debug!("SuperUser table creation successful");
         }
         Err(err) => {
-            error!("Error creating SuperUser table: {:?}", err);
+            tracing::error!("Error creating SuperUser table: {:?}", err);
             panic!("Error creating SuperUser table: {:?}", err);
         }
     }
 
     match UserData::create_user_data_table(pool).await {
         Ok(_) => {
-            debug!("User data table creation successful");
+            tracing::debug!("User data table creation successful");
         }
         Err(err) => {
-            error!("Error creating user data table: {:?}", err);
+            tracing::error!("Error creating user data table: {:?}", err);
             panic!("Error creating user data table: {:?}", err);
         }
     }

@@ -91,7 +91,7 @@ impl UserData {
         Ok(data)
     }
 
-    pub async fn get_users(pool: &PgPool, num: i32) -> Result<Vec<UserData>, sqlx::Error> {
+    pub async fn get_users(pool: &PgPool, num: i64) -> Result<Vec<UserData>, sqlx::Error> {
         let data = sqlx::query_as::<_, UserData>(
             r#"
             SELECT * FROM user_data ORDER BY id LIMIT $1
@@ -101,5 +101,15 @@ impl UserData {
         .fetch_all(pool)
         .await?;
         Ok(data)
+    }
+
+    pub async fn count_users(pool: &PgPool) -> Result<i64, Error> {
+        let count_query = r#"
+            SELECT COUNT(*) FROM user_data
+        "#;
+
+        let count: (i64,) = sqlx::query_as(count_query).fetch_one(pool).await?;
+
+        Ok(count.0)
     }
 }

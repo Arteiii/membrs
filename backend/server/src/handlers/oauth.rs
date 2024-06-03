@@ -83,10 +83,10 @@ pub(crate) async fn oauth_callback(
 
     trace!("get oauth client instance");
 
-    let client = oauth::OAuthClient::new(&cdata, authorization_code).await;
+    let client = oauth::OAuthClient::create(&cdata, authorization_code).await;
 
     match client {
-        Ok(client) => {
+        Ok(mut client) => {
             trace!("oauth client instance created successfully");
 
             trace!("get client.get_user_data");
@@ -104,7 +104,11 @@ pub(crate) async fn oauth_callback(
 
             debug!("user data: {:?}", user_data);
 
-            let token = client.get_token().await;
+            let token = client.get_token().await.map_err(|e| {
+                error!("Failed to retrieve token: {:?}", e);
+                Redirect::temporary(&format!("/complete?status=failed&error={:?}", e))
+            })?;
+
             let username = user_data.get_username();
             let avatar_url = user_data.get_avatar_url();
 
@@ -115,10 +119,10 @@ pub(crate) async fn oauth_callback(
                 avatar: user_data.avatar,
                 email: user_data.email,
                 banner: user_data.banner,
-                access_token: Some(token.access_token),
-                token_type: Some(token.token_type),
+                access_token: Some(token.access_token.clone()),
+                token_type: Some(token.token_type.clone()),
                 expires_at: Some(token.expires_at),
-                refresh_token: Some(token.refresh_token.unwrap_or_else(|| "".to_string())),
+                refresh_token: Some(token.refresh_token.clone().unwrap_or_else(|| "".to_string())),
             };
 
             if let Err(err) = ud.insert_user_data(&state.pool).await {
@@ -138,7 +142,7 @@ pub(crate) async fn oauth_callback(
                 .add_guild_member(AddGuildMember::new(
                     guild_id,
                     &user_data.id,
-                    &client.get_token().await,
+                    &token,
                 ))
                 .await
             {

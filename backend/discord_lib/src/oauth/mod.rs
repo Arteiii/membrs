@@ -22,7 +22,7 @@
 //!
 //!     // Initialize OAuth client
 //!     // Check if OAuth client initialization resulted in an error
-//!     match OAuthClient::new(&client_data, "auth_code").await {
+//!     match OAuthClient::create(&client_data, "auth_code").await {
 //!         Ok(client) => {
 //!             // Retrieve user data
 //!             let user_data = client.get_user_data().await.unwrap();
@@ -40,6 +40,7 @@
 //! }
 //! ```
 
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, trace};
 
@@ -48,7 +49,7 @@ use crate::model::guild::Guild;
 use crate::model::oauth::AuthorizationInfo;
 pub use crate::model::oauth::{OAuthError, OAuthToken, OAuthTokenResponse};
 use crate::model::user::UserData;
-use crate::oauth::requests::{authenticate, parse_response, send_request};
+use crate::oauth::requests::{authenticate, get_refresh_token, parse_response, send_request};
 
 mod requests;
 
@@ -72,6 +73,20 @@ pub struct OAuthClient {
 }
 
 impl OAuthClient {
+    pub async fn new(data: &ClientData, token: &OAuthToken) -> Result<OAuthClient, OAuthError> {
+        let api = api::DiscordAPi::new("https://discord.com/api", api::DiscordApiVersion::V10);
+
+        info!("API Endpoint: {}", api.build_url());
+
+        info!("Authentication successful");
+
+        Ok(OAuthClient {
+            client_data: data.clone(),
+            api,
+            token: token.clone(),
+        })
+    }
+
     /// Creates a new OAuthClient instance.
     ///
     /// # Arguments
@@ -82,7 +97,7 @@ impl OAuthClient {
     /// # Returns
     ///
     /// A Result containing the OAuthClient instance if successful, or an OAuthError if authentication fails
-    pub async fn new(data: &ClientData, auth_code: &str) -> Result<OAuthClient, OAuthError> {
+    pub async fn create(data: &ClientData, auth_code: &str) -> Result<OAuthClient, OAuthError> {
         let api = api::DiscordAPi::new("https://discord.com/api", api::DiscordApiVersion::V10);
 
         info!("API Endpoint: {}", api.build_url());
@@ -104,10 +119,10 @@ impl OAuthClient {
     /// # Returns
     ///
     /// A Result containing the user data if successful, or an OAuthError if the request fails
-    pub async fn get_user_data(&self) -> Result<UserData, OAuthError> {
+    pub async fn get_user_data(&mut self) -> Result<UserData, OAuthError> {
         let response = send_request(
             &self.api.append_path("/users/@me"),
-            &self.token.access_token,
+            &self.get_token().await?,
         )
         .await?;
 
@@ -121,10 +136,10 @@ impl OAuthClient {
     /// # Returns
     ///
     /// A Result containing a vector of Guilds if successful, or an OAuthError if the request fails
-    pub async fn get_user_guilds(&self) -> Result<Vec<Guild>, OAuthError> {
+    pub async fn get_user_guilds(&mut self) -> Result<Vec<Guild>, OAuthError> {
         let response = send_request(
             &self.api.append_path("/users/@me/guilds"),
-            &self.token.access_token,
+            &self.get_token().await?,
         )
         .await?;
         parse_response(response).await
@@ -135,8 +150,20 @@ impl OAuthClient {
     /// # Returns
     ///
     /// The OAuthToken instance containing the access token
-    pub async fn get_token(&self) -> OAuthToken {
-        self.token.clone()
+    pub async fn get_token(&mut self) -> Result<OAuthToken, OAuthError> {
+        if Utc::now() >= self.token.expires_at {
+            trace!("Token expired, refreshing token...");
+            self.token = get_refresh_token(
+                &self.client_data,
+                self.token.refresh_token.as_ref().ok_or_else(|| {
+                    OAuthError::RequestError("No refresh token available".to_string())
+                })?,
+            )
+            .await?;
+            trace!("Token refreshed successfully: {}", self.token.access_token);
+        }
+
+        Ok(self.token.clone())
     }
 
     /// Retrieves the current authorization information including user data.
@@ -144,11 +171,11 @@ impl OAuthClient {
     /// # Returns
     ///
     /// A Result containing the user data if successful, or an OAuthError if the request fails
-    pub async fn get_authorization_info(&self) -> Result<AuthorizationInfo, OAuthError> {
+    pub async fn get_authorization_info(&mut self) -> Result<AuthorizationInfo, OAuthError> {
         debug!("get_authorization_info called");
         let response = send_request(
             &self.api.append_path("/oauth2/@me"),
-            &self.token.access_token,
+            &self.get_token().await?,
         )
         .await?;
 
